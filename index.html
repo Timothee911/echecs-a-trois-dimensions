@@ -10,7 +10,7 @@ body{display:flex;flex-direction:column}
 #views{flex:1;min-height:0;display:flex;position:relative}
 .view{display:none;flex:1;min-width:0;min-height:0}
 body[data-view=play] #play-view{display:flex}
-body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;overflow-y:auto}
+body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=rules] #rules-view{display:block;overflow-y:auto}
 #play-view{position:relative}
 #stage{flex:1;position:relative;min-width:0;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,var(--st1) 0%,var(--st2) 75%)}
 #stage canvas{display:block;width:100%;height:100%}
@@ -163,13 +163,34 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
 @keyframes fade{0%,70%{opacity:1}100%{opacity:0}}
 @keyframes fly{from{transform:translate(-50%,-50%) scale(.4)}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 .pzm.ok{color:#18864b}.pzm.ko{color:var(--bad)}
+#netm{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:#0b0f1488;backdrop-filter:blur(4px);padding:16px}
+#netm.on{display:grid;animation:fin .2s}
+.nbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;width:min(430px,100%);box-shadow:0 30px 80px #0004}
+.nbox h3{margin:0 0 4px;font-size:24px;letter-spacing:-.02em}.nbox .tx{margin:0 0 18px;color:var(--mut);font-size:14px}
+.nbox .hbtn{width:100%;justify-content:center}
+.nbox .or{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:13px;margin:16px 0}.nbox .or:before,.nbox .or:after{content:"";flex:1;border-top:1px solid var(--line)}
+.nbox label{display:block;font:700 13px inherit;margin-bottom:8px}
+.jrow{display:flex;gap:10px}.jrow input{flex:1;min-width:0;text-align:center;letter-spacing:.3em;text-transform:uppercase;font:600 16px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 10px}
+.jrow .hbtn{width:auto;padding:13px 18px}
+.nbox .code{font:800 38px ui-monospace,Menlo,monospace;letter-spacing:.22em;text-align:center;background:var(--bg);border-radius:14px;padding:14px 0 14px .22em;margin:6px 0 12px}
+.nbox .lnk{font:12px ui-monospace,Menlo,monospace;color:var(--mut);word-break:break-all;text-align:center;margin-bottom:12px}
+.nbox .st{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--acc2);font-weight:600;font-size:14px;margin:16px 0 4px}
+.nbox .st:before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--acc);border-right-color:transparent;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#net-err{color:var(--bad);font-size:13px;font-weight:600;text-align:center;margin-top:12px;min-height:0}
+.nbox .back{margin-top:10px}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stp{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px 16px}.stp i{font:800 12px ui-monospace,Menlo,monospace;color:var(--acc);font-style:normal}.stp b{display:block;font-size:15px;margin:4px 0}.stp span{font-size:13px;color:var(--mut);line-height:1.5}
+.rk.wide{max-width:760px}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+#stage.flip .pbar.top{top:auto;bottom:16px}#stage.flip .pbar.bot{bottom:auto;top:16px}
 @media(max-width:1000px){.cards{grid-template-columns:1fr}}
 @media(max-width:520px){#cta{display:none}#nav .logo2 span{display:none}}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
 </style></head><body>
 <header id="nav">
   <a class="logo2" href="#/"><i>♞</i><span>Échecs 3D</span></a>
-  <a class="lk" data-v="home" href="#/">Accueil</a><a class="lk" data-v="play" href="#/jouer">Jouer</a><a class="lk" data-v="rank" href="#/classement">Classement</a>
+  <a class="lk" data-v="home" href="#/">Accueil</a><a class="lk" data-v="play" href="#/jouer">Jouer</a><a class="lk" data-v="rank" href="#/classement">Classement</a><a class="lk" data-v="rules" href="#/regles">Règles</a>
   <span class="sp"></span>
   <button class="ibtn" id="theme" aria-label="Changer de thème"><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   <button class="cta" id="cta">Jouer</button>
@@ -183,6 +204,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
       <p>Les échecs tridimensionnels de Star Trek : trois plateaux 4×4 posés en escalier, quatre plateaux d’attaque que l’on déplace, et des pièces qui changent de niveau. Mets le roi adverse en échec et mat.</p>
       <div class="hbtns">
         <button class="hbtn pri" id="h-bot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Jouer contre le bot</button>
+        <button class="hbtn" id="h-net"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>Inviter un ami</button>
         <button class="hbtn" id="h-two"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5"/></svg>Local à deux</button>
         <button class="hbtn txt" id="h-rules">Voir les règles</button>
       </div>
@@ -200,6 +222,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
     <div class="feat"><div class="ic">★</div><b>Classement ELO</b><span>Ton ELO évolue à chaque partie, comme aux échecs classiques, et reste gardé dans ton navigateur.</span></div>
   </div>
 </div></section>
+<section id="rules-view" class="view"><div class="rk wide"><h2>Règles</h2><p>Tout ce qu’il faut savoir pour jouer, en quelques lignes.</p><div id="rules-page"></div></div></section>
 <section id="rank-view" class="view"><div class="rk"><h2>Classement</h2><p>Classement local : ton ELO face aux bots.</p><div id="rank-list"></div></div></section>
 <div id="play-view" class="view">
 <main id="stage">
@@ -226,6 +249,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
     <div class="pane" id="boards"><div class="sect"><h5>Plateaux d’attaque</h5><div id="bdlist"></div><p class="hint">Au lieu de jouer une pièce, déplace un plateau que tu contrôles vers un tenon libre voisin. Les pièces posées dessus le suivent.</p></div><div class="sect"><h5>Les six niveaux</h5><div class="lvls" id="lvls"></div></div></div>
     <div class="pane" id="rules"></div>
     <div class="pane" id="game"><div class="sect"><h5>Adversaire</h5><div class="lv" id="lv"><button data-v="1">Bot facile<small>ELO 800</small></button><button data-v="2">Bot moyen<small>ELO 1200</small></button><button data-v="3">Bot fort<small>ELO 1500</small></button><button data-v="0">À deux<small>même écran</small></button></div>
+      <button class="btn" id="o-net" style="width:100%;margin-top:8px">🔗 Inviter un ami (en ligne)</button>
       <select id="opp" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select></div>
       <div class="sect"><h5>Joueurs</h5><button class="btn" id="swap" style="width:100%">Inverser les camps</button>
       <p class="hint">Tu joues les Blancs. Chaque partie terminée (mat, pat ou abandon) modifie ton ELO selon le niveau de l’adversaire, avec le calcul standard (K = 32). Tout reste dans ce navigateur.</p>
@@ -233,6 +257,14 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
   </div>
   <div class="acts"><button class="btn" id="undo">↶ Annuler</button><button class="btn dng" id="resign">⚑ Abandon</button><button class="btn pri" id="reset">Nouvelle partie</button></div>
 </aside></div></div>
+<div id="netm"><div class="nbox">
+  <h3>En ligne</h3><p class="tx">Envoie un lien à un ami et jouez à distance.</p>
+  <div id="net-a"><button class="hbtn pri" id="net-new">Créer une partie</button><div class="or">ou</div><label for="net-code">Rejoindre avec un code</label><div class="jrow"><input id="net-code" maxlength="6" placeholder="ABC123" autocomplete="off" spellcheck="false"><button class="hbtn" id="net-join">Rejoindre</button></div></div>
+  <div id="net-b" hidden><label>Ton code</label><div class="code" id="net-show"></div><div class="lnk" id="net-lnk"></div><button class="hbtn pri" id="net-copy">Copier le lien</button><div class="st" id="net-st">En attente de ton ami…</div></div>
+  <div id="net-err"></div>
+  <button class="hbtn txt back" id="net-back">Retour</button>
+</div></div>
+<script src="peerjs.min.js"></script>
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -439,19 +471,20 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 let players=store.get('c3d-players',null)||{w:{name:'Joueur 1',elo:1200,g:0},b:{name:'Joueur 2',elo:1200,g:0}};
 const BOT={1:{n:'Facile',e:800,d:0,noise:150},2:{n:'Moyen',e:1200,d:1,noise:25},3:{n:'Fort',e:1500,d:2,noise:0}};
 let botLvl=+store.get('c3d-bot',2);if(!(botLvl in BOT)&&botLvl!==0)botLvl=2;
-const botOn=()=>botLvl>0;let thinking=false,botT=0;
+let net=null,netPeer=null,netQ=[];const homeAz=()=>net&&net.me=='b'?.6+Math.PI:.6;
+const botOn=()=>botLvl>0&&!net;let thinking=false,botT=0;
 let eloDone=false,deltas={w:null,b:null};
 const $=id=>document.getElementById(id);
-const pname=sd=>sd=='b'&&botOn()?'Bot · '+BOT[botLvl].n:players[sd].name;
+const pname=sd=>net?(sd==net.me?players.w.name:'Ton ami'):sd=='b'&&botOn()?'Bot · '+BOT[botLvl].n:players[sd].name;
 function renderPlayers(){for(const sd of['w','b']){
-  const isBot=sd=='b'&&botOn();const pl=isBot?{name:'Bot · '+BOT[botLvl].n,elo:BOT[botLvl].e}:players[sd];$('nm-'+sd).disabled=isBot;if($('nm-'+sd)!==document.activeElement)$('nm-'+sd).value=pl.name;
+  const isBot=sd=='b'&&botOn();const pl=net?{name:pname(sd),elo:sd==net.me?players.w.elo:'—'}:isBot?{name:'Bot · '+BOT[botLvl].n,elo:BOT[botLvl].e}:players[sd];$('nm-'+sd).disabled=isBot||!!net;if($('nm-'+sd)!==document.activeElement)$('nm-'+sd).value=pl.name;
   $('el-'+sd).textContent=pl.elo;
   const d=$('dl-'+sd),v=deltas[sd];
   if(v===null){d.className='delta';d.textContent=''}else{d.className='delta '+(v>0?'up':v<0?'dn':'eq');d.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)}
-  $('pc-'+sd).classList.toggle('act',turn==sd&&!over)}renderCaps()}
-for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{if(sd=='b'&&botOn())return;players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
+  $('pc-'+sd).classList.toggle('act',turn==sd&&!over)}$('stage').classList.toggle('flip',!!net&&net.me=='b');renderCaps()}
+for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{if(net||(sd=='b'&&botOn()))return;players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
 function finish(res){ // res : 'w' | 'b' | 'd'
-  if(eloDone)return;eloDone=true;
+  if(eloDone)return;eloDone=true;if(net){renderPlayers();return}
   const K=32,rw=players.w.elo,rb=botOn()?BOT[botLvl].e:players.b.elo,ew=1/(1+Math.pow(10,(rb-rw)/400));
   const sw=res=='w'?1:res=='d'?.5:0;
   const dw=Math.round(K*(sw-ew)),db=-dw;
@@ -459,13 +492,13 @@ function finish(res){ // res : 'w' | 'b' | 'd'
   if(botOn())deltas={w:dw,b:null};else{players.b.elo+=db;players.b.g++;deltas={w:dw,b:db}}
   store.set('c3d-players',players);logGame(res,dw);renderPlayers()}
 function resign(){if(over||thinking||puzzleMode)return;if(hist.length&&!confirm('Abandonner la partie ?'))return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
-  over=true;sel=null;legal=[];selB=null;slots=[];const wn=turn=='w'?'b':'w';finish(wn);ui(pname(wn)+' gagne par abandon');paint();showEnd(wn,'Par abandon')}
+  over=true;sel=null;legal=[];selB=null;slots=[];const lo=net?net.me:turn,wn=lo=='w'?'b':'w';if(net)netSend({t:'resign'});finish(wn);ui(pname(wn)+' gagne par abandon');paint();showEnd(wn,'Par abandon')}
 $('resign').onclick=resign;
 $('opp').value=String(botLvl);
-function applyMode(){$('swap').style.display=botOn()?'none':'';document.querySelectorAll('#lv button').forEach(b=>b.classList.toggle('on',+b.dataset.v==botLvl));if(typeof ST!=='undefined'&&ST)ui();$('elo-reset').parentNode.style.display='';renderPlayers()}
+function applyMode(){$('swap').style.display=botOn()||net?'none':'';document.querySelectorAll('#lv button').forEach(b=>b.classList.toggle('on',+b.dataset.v==botLvl&&!net));if(typeof ST!=='undefined'&&ST)ui();$('elo-reset').parentNode.style.display='';renderPlayers()}
 document.querySelectorAll('#lv button').forEach(b=>b.onclick=()=>{if(+b.dataset.v==botLvl&&!hist.length)return;if(hist.length&&!over&&!confirm('Changer d’adversaire et recommencer la partie ?'))return;$('opp').value=b.dataset.v;$('opp').onchange({target:$('opp')})});
-$('opp').onchange=e=>{botLvl=+e.target.value;store.set('c3d-bot',botLvl);init();paint();applyMode()};
-$('swap').onclick=()=>{if(botOn())return;if(hist.length&&!over&&!confirm('Inverser les camps en cours de partie ?'))return;const t=players.w;players.w=players.b;players.b=t;store.set('c3d-players',players);deltas={w:null,b:null};renderPlayers()};
+$('opp').onchange=e=>{netAbortAll();botLvl=+e.target.value;store.set('c3d-bot',botLvl);init();paint();applyMode()};
+$('swap').onclick=()=>{if(botOn()||net)return;if(hist.length&&!over&&!confirm('Inverser les camps en cours de partie ?'))return;const t=players.w;players.w=players.b;players.b=t;store.set('c3d-players',players);deltas={w:null,b:null};renderPlayers()};
 $('elo-reset').onclick=e=>{e.preventDefault();players.w.elo=players.b.elo=1200;players.w.g=players.b.g=0;deltas={w:null,b:null};store.set('c3d-players',players);renderPlayers()};
 // ---------- règles illustrées ----------
 const RULES=[
@@ -480,11 +513,12 @@ function thumbs(){const out={};let r;try{r=new THREE.WebGLRenderer({antialias:tr
   const c=new THREE.PerspectiveCamera(28,128/160,.1,50);const H={P:.95,R:.95,N:1.12,B:1.35,U:1.2,Q:1.45,K:1.7};
   for(const [t] of RULES){const o=makePiece(t,'w');o.rotation.y=.9;sc.add(o);const h=H[t];c.position.set(0,h*.5+.55,h*2.95);c.lookAt(0,h*.48,0);r.render(sc,c);out[t]=r.domElement.toDataURL();sc.remove(o)}
   r.dispose()}catch(e){}return out}
+const STEPS='<div class="steps"><div class="stp"><i>1</i><b>Le but</b><span>Mettre le roi adverse en échec et mat. Tu joues les Blancs, en bas.</span></div><div class="stp"><i>2</i><b>Un coup par tour</b><span>Tu déplaces une pièce, ou un plateau d’attaque. Puis c’est à l’adversaire.</span></div><div class="stp"><i>3</i><b>Vue de dessus</b><span>Chaque pièce bouge comme aux échecs classiques, mais peut atterrir sur n’importe quel niveau de la case visée.</span></div><div class="stp"><i>4</i><b>Plateaux d’attaque</b><span>Les petits plateaux 2×2 se déplacent sur un tenon libre voisin, avec leurs pièces.</span></div></div>';
 function buildRules(){const th=thumbs();
-  $('rules').innerHTML='<div class="rhero"><h3>Échecs à trois dimensions</h3><p>Trois plateaux 4×4 posés en escalier et quatre plateaux d\u2019attaque 2×2 sur des tenons, comme dans la série Star Trek. On raisonne vue de dessus : chaque pièce bouge comme aux échecs classiques, puis se pose sur le niveau de son choix. Une case s\u2019écrit colonne + rangée + niveau, par exemple <b>b2⁰</b>.</p><div class="chips"><span class="chip">Colonnes z–e</span><span class="chip">Rangées 0–9</span><span class="chip">Niveaux 0–5</span></div></div>'+
+  const html='<div class="rhero"><h3>Échecs à trois dimensions</h3><p>Trois plateaux 4×4 posés en escalier et quatre plateaux d\u2019attaque 2×2 sur des tenons, comme dans la série Star Trek. On raisonne vue de dessus : chaque pièce bouge comme aux échecs classiques, puis se pose sur le niveau de son choix. Une case s\u2019écrit colonne + rangée + niveau, par exemple <b>b2⁰</b>.</p><div class="chips"><span class="chip">Colonnes z–e</span><span class="chip">Rangées 0–9</span><span class="chip">Niveaux 0–5</span></div></div>'+
   '<div class="rgrid">'+RULES.map(([t,n,tg,d])=>'<div class="rc"><div class="th">'+(th[t]?'<img alt="'+n+'" src="'+th[t]+'">':'')+'</div><div><h4>'+n+'</h4><p>'+d+'</p><div class="tg">'+tg.map((x,i)=>'<i class="'+(i?'g':'')+'">'+x+'</i>').join('')+'</div></div></div>').join('')+
   '<div class="rc"><div class="th" style="font-size:34px;color:#8fd3e6">▦</div><div><h4>Plateaux d\u2019attaque</h4><p>Quatre plateaux 2×2 posés sur des tenons aux coins des grands plateaux. À ton tour, au lieu de jouer une pièce, tu peux déplacer un plateau que tu contrôles vers un tenon libre voisin : autre coin du même plateau, plateau voisin, ou de l\u2019autre côté. Les pièces dessus le suivent. Passe par l\u2019onglet Plateaux ou clique sur son cadre.</p><div class="tg"><i>Mobile</i><i class="g">2×2</i></div></div></div></div>'+
-  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Les règles n\u2019ont jamais été fixées à l\u2019écran dans la série : cette version suit des règles de fans simplifiées (pas de roque ni de prise en passant). Un pat donne une partie nulle.</div>'}
+  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Les règles n\u2019ont jamais été fixées à l\u2019écran dans la série : cette version suit des règles de fans simplifiées (pas de roque ni de prise en passant). Un pat donne une partie nulle.</div>';$('rules').innerHTML=html;$('rules-page').innerHTML=STEPS+html}
 // ---------- état du jeu ----------
 let ST,turn,sel,legal,over,pieceObjs=[],hist=[],selB=null,slots=[];
 let puzzleMode=false,puzErr=0,puzHome=false,puzMsg='',saved=null;
@@ -552,26 +586,26 @@ function renderHist(){const o=$('hist');if(!hist.length){o.innerHTML='<div class
   const ls=hist[hist.length-1].s,R=rows.length-1;
   o.innerHTML='<table class="mv">'+rows.map((r,i)=>'<tr><td class="n">'+(i+1)+'.</td><td'+(i==R&&ls=='w'?' class="cur"':'')+'>'+esc(r.w||'…')+'</td><td'+(i==R&&ls=='b'?' class="cur"':'')+'>'+esc(r.b||'')+'</td></tr>').join('')+'</table>';
   const pn=o.closest('.panes');if(pn)pn.scrollTop=pn.scrollHeight}
-function undo(){if(puzzleMode||!hist.length||thinking)return;if(over){if(!botOn()&&eloDone)return;over=false}let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);$('endc').classList.remove('on');sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
+function undo(){if(net){ui('Pas d’annulation en ligne');return}if(puzzleMode||!hist.length||thinking)return;if(over){if(!botOn()&&eloDone)return;over=false}let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);$('endc').classList.remove('on');sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
 function ui(msg){if(puzHome&&document.body.dataset.view=='home'){puzMsg=msg||'';const pm=document.getElementById('pz-msg');if(pm)pm.textContent=msg||'Clique une pièce blanche, puis la case où elle va.'}
-  $('turn').textContent=over?'Partie terminée':turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';$('mode').textContent=botOn()?'contre bot '+BOT[botLvl].n.toLowerCase():'à deux';renderPlayers()}
+  $('turn').textContent=over?'Partie terminée':turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';$('mode').textContent=net?'en ligne':botOn()?'contre bot '+BOT[botLvl].n.toLowerCase():'à deux';renderPlayers()}
 const GLW={Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙'},INI={Q:1,R:2,B:2,N:2,P:8},GL={Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'},PV={Q:9,R:5,B:3,N:3,P:1};
 function renderCaps(){if(!ST)return;const cnt={w:{},b:{}};for(const p of ST.m.values())cnt[p.s][p.t]=(cnt[p.s][p.t]||0)+1;
   const mat={w:0,b:0};for(const s of['w','b'])for(const t in PV)mat[s]+=(cnt[s][t]||0)*PV[t];
   for(const s of['w','b']){const o=s=='w'?'b':'w';let h='';for(const t of'QRBNP')for(let i=cnt[o][t]||0;i<INI[t];i++)h+=(o=='w'?GLW:GL)[t];const d=mat[s]-mat[o];$('cap-'+s).innerHTML=h+(d>0?'<em>+'+d+'</em>':'')}}
 const BDN={B1:'Attaque blanche, côté dame',B2:'Attaque blanche, côté roi',N1:'Attaque noire, côté dame',N2:'Attaque noire, côté roi'};
 function renderBoardsList(){const o=$('bdlist');if(!o||!ST||!ST.bd||puzzleMode)return;
-  o.innerHTML=ST.bd.map(b=>{const c=controller(ST,b),can=!over&&c==turn&&!thinking&&!(botOn()&&turn=='b');
+  o.innerHTML=ST.bd.map(b=>{const c=controller(ST,b),can=!over&&c==turn&&!thinking&&!(botOn()&&turn=='b')&&!(net&&turn!=net.me);
     return '<div class="bdi '+b.own+(selB==b.id?' on':'')+'"><div class="sw"><i></i><i></i><i></i><i></i></div><div class="t">'+b.id+' · '+BDN[b.id]+'<small>Cases '+FILES[b.x0]+FILES[b.x0+1]+' '+b.y0+'–'+(b.y0+1)+', niveau '+b.z+' · '+(c?'contrôlé par les '+(c=='w'?'Blancs':'Noirs'):'disputé')+'</small></div>'+(can?'<button class="btn sm" data-b="'+b.id+'">'+(selB==b.id?'Annuler':'Déplacer')+'</button>':'')+'</div>'}).join('');
   o.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{if(selB==x.dataset.b){selB=null;slots=[];ui();paint()}else selBoard(x.dataset.b)})}
 $('lvls').innerHTML=[[5,'Attaque haute','plateaux noirs au départ',1],[4,'Plateau des Noirs','rangées 5–8',0],[3,'Attaque milieu','',1],[2,'Plateau neutre','rangées 3–6',0],[1,'Attaque basse','plateaux blancs au départ',1],[0,'Plateau des Blancs','rangées 1–4',0]].map(([n,t,s,a])=>'<div class="lvr '+(a?'at':'mn')+'"><b>'+n+'</b>'+t+'<span>'+s+'</span></div>').join('');
 function showEnd(res,how){const bot=botOn();let t,ic;
-  if(res=='d'){t='Partie nulle';ic='½'}else if(bot){t=res=='w'?'Victoire !':'Défaite';ic=res=='w'?'♔':'♚'}else{t=pname(res)+' gagne';ic=res=='w'?'♔':'♚'}
+  if(res=='d'){t='Partie nulle';ic='½'}else if(bot||net){t=res==(net?net.me:'w')?'Victoire !':'Défaite';ic=res=='w'?'♔':'♚'}else{t=pname(res)+' gagne';ic=res=='w'?'♔':'♚'}
   $('end-ic').textContent=ic;$('end-t').textContent=t;$('end-s').textContent=how+' · '+hist.length+' coups';
   const d=deltas.w;$('end-d').innerHTML=d===null?'':'<span class="dl '+(d>0?'up':d<0?'dn':'eq')+'">'+(d>0?'+':d<0?'−':'±')+Math.abs(d)+' ELO</span>';
   setTimeout(()=>{if(over&&!puzzleMode&&document.body.dataset.view=='play')$('endc').classList.add('on')},650)}
 $('end-x').onclick=()=>$('endc').classList.remove('on');
-$('end-n').onclick=()=>{init();paint()};
+$('end-n').onclick=()=>newGame();
 // ---------- affichage des pièces ----------
 function sync(){buildBoards();pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
   for(const [k,p] of ST.m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;o.userData.cell={x,y,z};scene.add(o);pieceObjs.push(o)}}
@@ -595,7 +629,7 @@ function paint(){
     m.material.color.setHex(c);m.material.opacity=op}
   renderBoardsList()}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
-function click(e){const v=document.body.dataset.view;if(v!='play'&&!(v=='home'&&puzHome))return;if(e.target!==ren.domElement)return;if(over||thinking||(botOn()&&turn=='b'&&!puzzleMode))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
+function click(e){const v=document.body.dataset.view;if(v!='play'&&!(v=='home'&&puzHome))return;if(e.target!==ren.domElement)return;if(over||thinking||(botOn()&&turn=='b'&&!puzzleMode)||(net&&!puzzleMode&&turn!=net.me))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
   const hits=ray.intersectObjects([...ghostMeshes,...cellMeshes,...pieceObjs,...frameMeshes],true);
   for(const h of hits){let o=h.object;while(o){const u=o.userData;
     if(u.slot){commit({k:'b',id:selB,x0:u.slot.x0,y0:u.slot.y0,z:u.slot.z});return}
@@ -608,8 +642,9 @@ function selBoard(id){const b=ST.bd.find(o=>o.id==id);if(!b)return;
   if(controller(ST,b)!=turn){ui('Ce plateau d’attaque est contrôlé par l’adversaire');return}
   const ms=legalAll(ST,turn).filter(m=>m.k=='b'&&m.id==id);sel=null;legal=[];selB=id;slots=ms.map(m=>({x0:m.x0,y0:m.y0,z:m.z}));
   ui('Plateau '+id+' : '+(slots.length?'clique un des '+slots.length+' emplacements verts':'aucun déplacement possible'));paint()}
-function commit(m){
+function commit(m,remote){
   if(puzzleMode){puzzleMove(m);return}
+  if(net&&!remote){if(turn!=net.me)return;netSend({t:'move',m})}
   const mover=m.k=='p'?ST.m.get(key(...m.f)):null,cap=m.k=='p'?ST.m.get(key(...m.t)):null;
   let txt=m.k=='p'?FR[mover.t]+sq(m.f)+(cap?'×':'–')+sq(m.t):'▦'+m.id+'→'+FILES[m.x0]+m.y0+SUP[m.z];
   hist.push({before:ST,s:turn,txt,mv:m});ST=applyMove(ST,m);
@@ -648,9 +683,9 @@ function botNext(){if(!botOn()||over||turn!='b')return;thinking=true;const pre=$
 document.getElementById('undo').onclick=undo;
 const goCam=(a,e,d)=>{tw={a:a??(tw?tw.a:az),e:e??(tw?tw.e:el),d:d??(tw?tw.d:dist)}};
 $('v-l').onclick=()=>goCam((tw?tw.a:az)+Math.PI/4);$('v-r').onclick=()=>goCam((tw?tw.a:az)-Math.PI/4);$('v-top').onclick=()=>goCam(Math.round(az/(Math.PI/2))*Math.PI/2,1.38);$('v-side').onclick=()=>goCam(Math.PI/2,.1);
-$('v-home').onclick=()=>{zoomed=false;const d=Math.max(26,16/Math.min(cam.aspect,1.6)*1.1);goCam(az-Math.round((az-.6)/(2*Math.PI))*2*Math.PI,.42,d)};$('v-in').onclick=()=>{zoomed=true;goCam(null,null,Math.max(8,(tw?tw.d:dist)-3))};$('v-out').onclick=()=>{zoomed=true;goCam(null,null,Math.min(40,(tw?tw.d:dist)+3))};
+$('v-home').onclick=()=>{zoomed=false;const d=Math.max(26,16/Math.min(cam.aspect,1.6)*1.1);goCam(az-Math.round((az-homeAz())/(2*Math.PI))*2*Math.PI,.42,d)};$('v-in').onclick=()=>{zoomed=true;goCam(null,null,Math.max(8,(tw?tw.d:dist)-3))};$('v-out').onclick=()=>{zoomed=true;goCam(null,null,Math.min(40,(tw?tw.d:dist)+3))};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
-document.getElementById('reset').onclick=()=>{init();paint()};
+document.getElementById('reset').onclick=()=>newGame();
 window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,y0:slots[i].y0,z:slots[i].z}),cam:()=>({az,el,dist}),all:()=>legalAll(ST,turn).length,doMove:i=>commit(legalAll(ST,turn)[i]),turn:()=>turn,az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 applyMode();buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
@@ -719,18 +754,59 @@ function setView(v,quiet){
   heroMode=v=='home';
   if(v=='home'){$('disc').appendChild(ren2.domElement);if(!puzHome)loadHomePuzzle();buildHome();fit2()}
   else{stage.appendChild(ren.domElement);if(ren2.domElement.parentElement)ren2.domElement.remove();
-    if(v=='play'){if(puzHome){puzHome=false;puzzleMode=false;if(saved){const c=saved;saved=null;restore(c)}else init()}az=.6;el=.42;zoomed=false;tw=null}
+    if(v=='play'){if(puzHome){puzHome=false;puzzleMode=false;if(saved){const c=saved;saved=null;restore(c)}else init()}az=homeAz();el=.42;zoomed=false;tw=null}
     if(v=='rank')buildRank()}
   fit();if(typeof paint==='function'&&typeof ST!=='undefined'&&ST)paint();
-  if(!quiet){const h=v=='home'?'#/':v=='play'?'#/jouer':'#/classement';if(location.hash!==h)history.replaceState(null,'',h)}}
-function route(){const h=location.hash;setView(h.startsWith('#/jouer')?'play':h.startsWith('#/classement')?'rank':'home',true)}
+  if(v=='play'&&netQ.length){const q=netQ;netQ=[];q.forEach(onNet)}
+  if(!quiet){const h=v=='home'?'#/':v=='play'?'#/jouer':v=='rules'?'#/regles':'#/classement';if(location.hash!==h)history.replaceState(null,'',h)}}
+function route(){const h=location.hash,j=h.match(/^#\/ami\/([A-Za-z0-9]{6})/);if(j){setView('home',true);history.replaceState(null,'','#/');netOpen();netJoin(j[1].toUpperCase());return}
+  setView(h.startsWith('#/jouer')?'play':h.startsWith('#/classement')?'rank':h.startsWith('#/regles')?'rules':'home',true)}
 window.addEventListener('hashchange',route);
 document.querySelectorAll('#nav a.lk').forEach(a=>a.onclick=e=>{e.preventDefault();setView(a.dataset.v)});
 $('cta').onclick=()=>setView('play');
-function startMode(lvl){saved=null;if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
+function startMode(lvl){netAbortAll();saved=null;if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
 $('h-bot').onclick=()=>startMode(botOn()?botLvl:2);
 $('h-two').onclick=()=>startMode(0);
-$('h-rules').onclick=()=>{setView('play');document.querySelector('[data-t=rules]').click()};
+$('h-rules').onclick=()=>setView('rules');
+// ---------- jouer avec un ami (connexion directe navigateur à navigateur, sans compte) ----------
+const NETCFG=(()=>{const q=new URLSearchParams(location.search).get('ph');if(!q)return {};const [h,p]=q.split(':');return {host:h,port:+p||9000,path:'/',secure:false}})();
+const netCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<6;i++)c+=A[Math.random()*A.length|0];return c};
+const nm=$('netm'),PID=c=>'e3d-'+c.toLowerCase();let netT=0;
+function netOpen(){nm.classList.add('on');$('net-a').hidden=false;$('net-b').hidden=true;$('net-err').textContent='';$('net-new').disabled=$('net-join').disabled=false}
+function netFail(t){clearTimeout(netT);if(netPeer&&!net){try{netPeer.destroy()}catch(e){}netPeer=null}netOpen();$('net-err').textContent=t}
+function netSend(d){try{net&&net.conn.send(d)}catch(e){}}
+function netAbortAll(){clearTimeout(netT);if(net&&net.conn)try{net.conn.close()}catch(e){}if(netPeer)try{netPeer.destroy()}catch(e){}net=null;netPeer=null;netQ=[];nm.classList.remove('on')}
+function netCreate(){if(typeof Peer==='undefined')return netFail('Connexion indisponible sur cet appareil.');
+  if(netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}
+  const code=netCode();$('net-new').disabled=true;
+  const p=netPeer=new Peer(PID(code),NETCFG);
+  p.on('open',()=>{const lnk=location.origin+location.pathname+'#/ami/'+code;$('net-a').hidden=true;$('net-b').hidden=false;$('net-err').textContent='';$('net-show').textContent=code;$('net-lnk').textContent=lnk;$('net-st').textContent='En attente de ton ami…';$('net-copy').textContent='Copier le lien';$('net-copy').onclick=async()=>{try{await navigator.clipboard.writeText(lnk);$('net-copy').textContent='Lien copié'}catch(e){$('net-copy').textContent='Copie impossible : '+code}}});
+  p.on('connection',c=>{if(net){c.close();return}netLink(c,'w')});
+  p.on('error',e=>{if(e.type=='unavailable-id'){netCreate();return}netFail('Le serveur de connexion ne répond pas. Réessaie dans un instant.')})}
+function netJoin(code){if(typeof Peer==='undefined')return netFail('Connexion indisponible sur cet appareil.');
+  code=code.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))return netFail('Le code a 6 caractères, par exemple ABC123.');
+  if(netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}
+  $('net-join').disabled=true;$('net-a').hidden=true;$('net-b').hidden=false;$('net-show').textContent=code;$('net-lnk').textContent='';$('net-copy').style.display='none';$('net-st').textContent='Connexion à ton ami…';$('net-err').textContent='';
+  const p=netPeer=new Peer(undefined,NETCFG);
+  p.on('open',()=>{const c=p.connect(PID(code),{reliable:true,serialization:'json'});netLink(c,'b');
+    netT=setTimeout(()=>{if(!net){netFail('Impossible de joindre cette partie. Vérifie le code.')}},12000)});
+  p.on('error',e=>netFail(e.type=='peer-unavailable'?'Code introuvable. Vérifie-le avec ton ami.':'Le serveur de connexion ne répond pas. Réessaie dans un instant.'))}
+function netLink(c,me){const go=()=>{if(net)return;clearTimeout(netT);net={conn:c,me};netQ=[];nm.classList.remove('on');$('net-copy').style.display='';
+    saved=null;init();applyMode();setView('play');az=homeAz();el=.42;updCam();paint();ui(me=='w'?'Ton ami est connecté : tu joues les Blancs, c’est à toi.':'Connecté : tu joues les Noirs, ton ami commence.')};
+  c.on('open',go);if(c.open)go();
+  c.on('data',onNet);
+  c.on('close',()=>{if(!net||net.conn!==c)return;if(!over){over=true;sel=null;legal=[];selB=null;slots=[];ui('Ton ami s’est déconnecté.');paint()}});
+  c.on('error',()=>{})}
+function newGame(){if(net)netSend({t:'reset'});init();paint()}
+function onNet(d){if(!net||!d)return;
+  if(document.body.dataset.view!='play'){netQ.push(d);return}
+  if(d.t=='reset'){init();paint();ui('Ton ami a lancé une nouvelle partie.');return}
+  if(d.t=='resign'){if(over)return;over=true;sel=null;legal=[];selB=null;slots=[];finish(net.me);ui('Ton ami abandonne : tu gagnes !');paint();showEnd(net.me,'Abandon');return}
+  if(d.t=='move'&&!over&&turn!=net.me&&d.m){const w=JSON.stringify(d.m);if(legalAll(ST,turn).some(x=>JSON.stringify(x)==w))commit(d.m,true)}}
+$('h-net').onclick=netOpen;$('o-net').onclick=()=>{netOpen()};
+$('net-new').onclick=netCreate;$('net-join').onclick=()=>netJoin($('net-code').value);
+$('net-code').addEventListener('keydown',e=>{if(e.key=='Enter')netJoin($('net-code').value)});
+$('net-back').onclick=()=>{clearTimeout(netT);if(!net&&netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}nm.classList.remove('on');$('net-copy').style.display=''};
 setTheme(store.get('c3d-theme','light'));
 if(location.search.includes('galerie')){setView('play',true)}else route();
 (function loop(){requestAnimationFrame(loop);if(tw){const k=.16;az+=(tw.a-az)*k;el+=(tw.e-el)*k;dist+=(tw.d-dist)*k;if(Math.abs(tw.a-az)+Math.abs(tw.e-el)+Math.abs(tw.d-dist)<.003){az=tw.a;el=tw.e;dist=tw.d;tw=null}updCam()}if(heroMode){az2+=.0035;updCam2();ren2.render(scene,cam2)}ren.render(scene,cam)})();
