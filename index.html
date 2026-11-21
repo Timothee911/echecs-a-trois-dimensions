@@ -186,6 +186,10 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 .rk.wide{max-width:760px}
 @media(max-width:560px){.steps{grid-template-columns:1fr}}
 #stage.flip .pbar.top{top:auto;bottom:16px}#stage.flip .pbar.bot{bottom:auto;top:16px}
+#seg{margin-top:12px}#seg>span{display:block;font:700 10.5px inherit;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+#seg .lv{display:flex;gap:4px;background:var(--bg);border-radius:11px;padding:3px}
+#seg .lv button{flex:1;border:0;background:transparent;border-radius:8px;padding:7px 2px;font:600 12px inherit;color:var(--mut);text-align:center;white-space:nowrap;cursor:pointer}
+#seg .lv button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px #1b243016}
 @media(max-width:1000px){.cards{grid-template-columns:1fr}}
 @media(max-width:520px){#cta{display:none}#nav .logo2 span{display:none}}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
@@ -244,18 +248,12 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
   <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
 </main>
 <aside id="side">
-  <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div></div>
-  <div id="tabs"><button class="tab on" data-t="histp">Coups</button><button class="tab" data-t="boards">Plateaux</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="game">Options</button></div>
+  <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div id="seg"><span>Adversaire</span><div class="lv" id="lv"><button data-v="1">Facile</button><button data-v="2">Moyen</button><button data-v="3">Fort</button><button data-v="0">À deux</button><button id="o-net">🔗 Ami</button></div></div></div>
+  <div id="tabs"><button class="tab on" data-t="histp">Coups</button><button class="tab" data-t="boards">Plateaux</button></div>
   <div class="panes">
     <div class="pane on" id="histp"><div id="hist"></div></div>
     <div class="pane" id="boards"><div class="sect"><h5>Plateaux d’attaque</h5><div id="bdlist"></div><p class="hint">Au lieu de jouer une pièce, déplace un plateau que tu contrôles vers un tenon libre voisin. Les pièces posées dessus le suivent.</p></div><div class="sect"><h5>Les six niveaux</h5><div class="lvls" id="lvls"></div></div></div>
-    <div class="pane" id="rules"></div>
-    <div class="pane" id="game"><div class="sect"><h5>Adversaire</h5><div class="lv" id="lv"><button data-v="1">Bot facile<small>ELO 800</small></button><button data-v="2">Bot moyen<small>ELO 1200</small></button><button data-v="3">Bot fort<small>ELO 1500</small></button><button data-v="0">À deux<small>même écran</small></button></div>
-      <button class="btn" id="o-net" style="width:100%;margin-top:8px">🔗 Inviter un ami (en ligne)</button>
-      <select id="opp" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select></div>
-      <div class="sect"><h5>Joueurs</h5><button class="btn" id="swap" style="width:100%">Inverser les camps</button>
-      <p class="hint">Tu joues les Blancs. Chaque partie terminée (mat, pat ou abandon) modifie ton ELO selon le niveau de l’adversaire, avec le calcul standard (K = 32). Tout reste dans ce navigateur.</p>
-      <p class="hint"><a href="#" id="elo-reset" style="color:var(--mut)">Remettre les ELO à 1200</a></p></div></div>
+    <div id="rules" hidden></div><div hidden><button id="swap"></button><a id="elo-reset" href="#"></a><select id="opp" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select></div>
   </div>
   <div class="acts"><button class="btn" id="undo">↶ Annuler</button><button class="btn dng" id="resign">⚑ Abandon</button><button class="btn pri" id="reset">Nouvelle partie</button></div>
 </aside></div></div>
