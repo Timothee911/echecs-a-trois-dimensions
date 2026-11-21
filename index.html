@@ -248,7 +248,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
   <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
 </main>
 <aside id="side">
-  <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div id="seg"><span>Adversaire</span><div class="lv" id="lv"><button data-v="1">Facile</button><button data-v="2">Moyen</button><button data-v="3">Fort</button><button data-v="0">À deux</button><button id="o-net">🔗 Ami</button></div></div></div>
+  <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div hidden id="lvh"><div class="lv" id="lv"><button data-v="1"></button><button data-v="2"></button><button data-v="3"></button><button data-v="0"></button><button id="o-net"></button></div></div></div>
   <div id="tabs"><button class="tab on" data-t="histp">Coups</button><button class="tab" data-t="boards">Plateaux</button></div>
   <div class="panes">
     <div class="pane on" id="histp"><div id="hist"></div></div>
@@ -681,6 +681,7 @@ function botPick(){const cfg=BOT[botLvl];let best=null,bs=-1e9;
 function botNext(){if(!botOn()||over||turn!='b')return;thinking=true;const pre=$('msg').textContent;ui((pre?pre+' · ':'')+'Le bot réfléchit…');
   clearTimeout(botT);botT=setTimeout(()=>{const m=botPick();thinking=false;if(over||!m)return;commit(m)},380)}
 document.getElementById('undo').onclick=undo;
+$('mode').title='Changer d’adversaire';$('mode').style.cursor='pointer';$('mode').onclick=()=>{if(net){netOpen();return}const o=[1,2,3,0],n=o[(o.indexOf(botLvl)+1)%4];if(hist.length&&!over&&!confirm('Changer d’adversaire et recommencer la partie ?'))return;$('opp').value=String(n);$('opp').onchange({target:$('opp')})};
 const goCam=(a,e,d)=>{tw={a:a??(tw?tw.a:az),e:e??(tw?tw.e:el),d:d??(tw?tw.d:dist)}};
 $('v-l').onclick=()=>goCam((tw?tw.a:az)+Math.PI/4);$('v-r').onclick=()=>goCam((tw?tw.a:az)-Math.PI/4);$('v-top').onclick=()=>goCam(Math.round(az/(Math.PI/2))*Math.PI/2,1.38);$('v-side').onclick=()=>goCam(Math.PI/2,.1);
 $('v-home').onclick=()=>{zoomed=false;const d=Math.max(26,16/Math.min(cam.aspect,1.6)*1.1);goCam(az-Math.round((az-homeAz())/(2*Math.PI))*2*Math.PI,.42,d)};$('v-in').onclick=()=>{zoomed=true;goCam(null,null,Math.max(8,(tw?tw.d:dist)-3))};$('v-out').onclick=()=>{zoomed=true;goCam(null,null,Math.min(40,(tw?tw.d:dist)+3))};
