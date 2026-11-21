@@ -97,6 +97,14 @@ function prof(pts,seg=56){const c=new THREE.SplineCurve(pts.map(p=>new THREE.Vec
 function ring(add,M,y,r,t=.02){const o=add(new THREE.TorusGeometry(r,t,10,40),y,M.trim);o.rotation.x=Math.PI/2;return o}
 function plinth(add,M,r=.36){add(lathe([[0,0],[r,0],[r,.04],[r*.9,.07],[r*.9,.09],[r*.78,.12],[0,.12]]));ring(add,M,.075,r*.92,.018)}
 const NEW={};
+NEW.P=(add,M)=>{
+  plinth(add,M,.31);
+  add(prof([[0,.1],[.24,.12],[.19,.2],[.13,.36],[.1,.5],[.115,.56]]));
+  ring(add,M,.38,.118,.013);
+  add(lathe([[0,.54],[.21,.54],[.22,.58],[.13,.63],[0,.64]]));
+  ring(add,M,.585,.215,.013);
+  add(new THREE.SphereGeometry(.17,32,24),.78);
+}//endP
 //@@NEW
 function makePiece(t,side){
   const M=MATS[side];const mat=M.body;
@@ -117,8 +125,8 @@ function makePiece(t,side){
 if(location.search.includes('galerie')){
   boardGroup.visible=false;
   const fl=new THREE.Mesh(new THREE.CircleGeometry(8,64),new THREE.MeshStandardMaterial({color:0x151c26,roughness:.6,metalness:.3}));fl.rotation.x=-Math.PI/2;scene.add(fl);
-  'PRNBUQK'.split('').forEach((t,i)=>{for(const [sd,z] of [['w',.9],['b',-.9]]){const o=makePiece(t,sd);o.position.set((i-3)*1.15,0,z);if(sd=='b')o.rotation.y=Math.PI;scene.add(o)}});
-  target.set(0,.5,0);dist=7.5;el=.28;az=0;updCam();
+  'PRNBUQK'.split('').forEach((t,i)=>{for(const [sd,z] of [['w',1.0],['b',-1.0]]){const o=makePiece(t,sd);o.position.set((i-3)*1.15,0,z);if(sd=='b')o.rotation.y=Math.PI;scene.add(o)}});
+  target.set(0,.4,0);dist=8.2;el=.55;az=0;updCam();
 }
 // game state
 let board,turn,sel,legal,over,pieceObjs,hist=[];
@@ -189,7 +197,7 @@ function play(x,y,z){const p=board.get(key(x,y,z));
 document.getElementById('undo').onclick=undo;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>{init();paint()};
-window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()}};
+window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 </script></body></html>
