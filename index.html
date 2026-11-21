@@ -110,9 +110,9 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
 .mini .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini .nm small{display:block;color:var(--mut);font-weight:500;font-size:12px}
 .mini .e{font:800 16px ui-monospace,Menlo,monospace}
 .dl{font:700 12px ui-monospace,Menlo,monospace;border-radius:99px;padding:2px 8px}.dl.up{background:#e3f6ea;color:#18864b}.dl.dn{background:#fde8e8;color:var(--bad)}.dl.eq{background:var(--bg);color:var(--mut)}
-#puzbar{display:none;border:1px solid var(--acc);background:var(--bg);border-radius:14px;padding:12px;margin-bottom:10px;font-size:13px;line-height:1.5}
-#puzbar b{display:block;font-size:14px;margin-bottom:2px}#puzbar button{margin-top:8px}
-body.puz #puzbar{display:block}
+#pz-board{height:330px;position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 40% 30%,var(--disc1),var(--disc2));margin-bottom:10px;touch-action:none}
+#pz-board canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pzm{min-height:38px;margin:0 0 10px;font-size:13.5px;font-weight:600;color:var(--acc2);text-align:center;line-height:1.4}
 @media(max-width:1000px){.cards{grid-template-columns:1fr}}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
 </style></head><body>
@@ -157,7 +157,6 @@ body.puz #puzbar{display:block}
   <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>
   <div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
   <div class="pane on" id="game">
-    <div id="puzbar"></div>
     <label class="sel">Adversaire<select id="opp"><option value="1">Bot · Facile (800)</option><option value="2">Bot · Moyen (1200)</option><option value="3">Bot · Fort (1500)</option><option value="0">Deux joueurs</option></select></label>
     <div class="btns"><button class="btn pri" id="reset">Nouvelle partie</button><button class="btn" id="undo">Annuler le coup</button><button class="btn dng" id="resign">Abandonner</button><button class="btn" id="swap">Inverser les camps</button></div>
     <p class="hint">Tu joues les Blancs, le bot joue les Noirs. Pour déplacer un plateau d’attaque, clique sur son cadre puis sur un emplacement vert. Chaque partie se termine par un échec et mat, un pat ou un abandon, et modifie ton ELO selon le niveau du bot (calcul standard, K = 32). Ton classement est gardé dans ce navigateur.</p>
@@ -183,30 +182,36 @@ let az=0.7,el=0.42,dist=20,zoomed=false;const target=new THREE.Vector3(0,3*GAP+.
 function updCam(){cam.position.set(target.x+dist*Math.cos(el)*Math.sin(az),target.y+dist*Math.sin(el),target.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(target);}
 updCam();
 let drag=null,moved=0;
-ren.domElement.addEventListener('pointerdown',e=>{if(heroMode)return;drag={x:e.clientX,y:e.clientY};moved=0});
+ren.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=0});
 addEventListener('pointerup',e=>{if(drag&&moved<5)click(e);drag=null});
 addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);az-=dx*.006;el=Math.max(-.2,Math.min(1.4,el+dy*.005));drag={x:e.clientX,y:e.clientY};updCam()});
-ren.domElement.addEventListener('wheel',e=>{zoomed=true;dist=Math.max(8,Math.min(34,dist+e.deltaY*.012));updCam()},{passive:true});
+ren.domElement.addEventListener('wheel',e=>{if(document.body.dataset.view!='play')return;zoomed=true;dist=Math.max(8,Math.min(34,dist+e.deltaY*.012));updCam()},{passive:true});
 let heroMode=false;
 function fit(){const host=ren.domElement.parentElement||stage;const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();ren.setSize(w,h);
-  if(heroMode){dist=23;el=.36;updCam();return}
+  if(heroMode){dist=21;el=.4;updCam();return}
   if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(23,14/Math.min(cam.aspect,1.6)*1.05);updCam()}}
 addEventListener('resize',fit);fit();
+// second rendu (accueil) : même scène vue par une caméra qui tourne
+const ren2=new THREE.WebGLRenderer({antialias:true,alpha:true});ren2.setClearColor(0x000000,0);ren2.setPixelRatio(Math.min(devicePixelRatio,2));
+const cam2=new THREE.PerspectiveCamera(40,1,.1,200);let az2=.7;
+function updCam2(){const d=31,e=.34;cam2.position.set(target.x+d*Math.cos(e)*Math.sin(az2),target.y+d*Math.sin(e)-1,target.z+d*Math.cos(e)*Math.cos(az2));cam2.lookAt(target.x,target.y-.8,target.z)}
+function fit2(){const h=ren2.domElement.parentElement;if(!h)return;const w=h.clientWidth||400,hh=h.clientHeight||400;cam2.aspect=w/hh;cam2.updateProjectionMatrix();ren2.setSize(w,hh);updCam2()}
+addEventListener('resize',fit2);
 // ---------- plateaux : 3 principaux 4×4 + 4 plateaux d'attaque 2×2 ----------
 // coords : x colonne a–d (0–3), y rangée 1–8 (0–7), z niveau 0–6 ; monde : X=x, Y=z*GAP, Z=y
 const wp=(x,y,z)=>new THREE.Vector3((x-1.5)*S,z*GAP,(3.5-y)*S);
 const cellMeshes=[],frameMeshes=[];
 const boardGroup=new THREE.Group();scene.add(boardGroup);
-const LIGHT=0xd5e6ec,DARK=0x3f6f82,GOLD=0xd9ac3f;
+const LIGHT=0xfde6f0,DARK=0xe0679c,GOLD=0xd9ac3f;
+const chrome=(c,sh=120)=>new THREE.MeshPhongMaterial({color:c,specular:0xffffff,shininess:sh});
 function rrShape(w,h,r){const s=new THREE.Shape(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
 const texCache=new Map();
 function txt(t,color,size=96){const k=t+color+size;if(texCache.has(k))return texCache.get(k);const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.fillStyle=color;g.font='600 '+size+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,64,70);const tx=new THREE.CanvasTexture(c);tx.anisotropy=4;texCache.set(k,tx);return tx}
-function flat(t,x,y,z,sz=.3){const m=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:txt(t,'#e9c46a'),transparent:true}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);boardGroup.add(m)}
-const frameMat=new THREE.MeshStandardMaterial({color:0x16212c,roughness:.35,metalness:.55});
-const frameMatB=new THREE.MeshStandardMaterial({color:0x2b3b4b,roughness:.35,metalness:.55});
-const goldMat=new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85,emissive:0x3a2a00});
-const ivMat=new THREE.MeshStandardMaterial({color:0xf3ead6,roughness:.3,metalness:.4});
-const nkMat=new THREE.MeshStandardMaterial({color:0x12151a,roughness:.3,metalness:.5});
+function flat(t,x,y,z,sz=.3){const m=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:txt(t,'#5b2a46'),transparent:true}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);boardGroup.add(m)}
+const frameMat=chrome(0xb3bbc7),frameMatB=chrome(0x8f99a8);
+const goldMat=chrome(0xeef1f5,180);
+const ivMat=chrome(0xffffff,180);
+const nkMat=chrome(0x3a404a,120);
 function mkBoard(x0,y0,w,h,z,own,bid){
   const Y=z*GAP,cx=(x0+(w-1)/2-1.5)*S,cz=(3.5-(y0+(h-1)/2))*S;
   const fr=new THREE.Mesh(new THREE.ExtrudeGeometry(rrShape(w*S+.7,h*S+.7,.14),{depth:.1,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:3}),bid?frameMatB:frameMat);
@@ -214,32 +219,28 @@ function mkBoard(x0,y0,w,h,z,own,bid){
   if(bid){fr.userData.bid=bid;frameMeshes.push(fr)}
   const inl=new THREE.Mesh(new THREE.BoxGeometry(w*S+.14,.02,h*S+.14),bid?(own=='w'?ivMat:nkMat):goldMat);inl.position.set(cx,Y-.01,cz);boardGroup.add(inl);
   for(let a=0;a<w;a++)for(let c=0;c<h;c++){const x=x0+a,y=y0+c;const base=(x+y+z)%2?LIGHT:DARK;
-    const m=new THREE.Mesh(new THREE.BoxGeometry(S*.97,.07,S*.97),new THREE.MeshStandardMaterial({color:base,roughness:.18,metalness:.1,emissive:base,emissiveIntensity:.32,transparent:true,opacity:.86}));
+    const m=new THREE.Mesh(new THREE.BoxGeometry(S*.97,.07,S*.97),new THREE.MeshStandardMaterial({color:base,roughness:.18,metalness:.1,emissive:base,emissiveIntensity:.2,transparent:true,opacity:.8}));
     m.position.copy(wp(x,y,z));m.position.y-=.02;m.userData={x,y,z,base,bd:bid||null};boardGroup.add(m);cellMeshes.push(m)}
   for(let a=0;a<w;a++)flat('abcd'[x0+a],(x0+a-1.5)*S,Y+.02,cz+(h*S/2+.4));
   for(let c=0;c<h;c++)flat(String(y0+c+1),cx-(w*S/2+.4),Y+.02,(3.5-(y0+c))*S);
   const tag=bid?bid:'';const names=['I','II','III'];
-  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt(bid||names[(z-1)/2],'#1f7a8c',bid?80:100),transparent:true}));
+  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt(bid||names[(z-1)/2],'#b02e6f',bid?80:100),transparent:true}));
   L.position.set(cx-(w*S/2+.95),Y+.2,cz-(h*S/2-.1));L.scale.set(.7,.7,1);boardGroup.add(L)}
 function buildBoards(){
   boardGroup.clear();cellMeshes.length=0;frameMeshes.length=0;
   for(const z of[1,3,5])mkBoard(0,2,4,4,z,null,null);
   for(const b of ST.bd)mkBoard(b.x0,b.y0,2,2,b.z,b.own,b.id);
   const H=6*GAP;
-  for(const sx of[-1,1])for(const sz of[-1,1]){
-    const px=sx*2.55,pz=sz*4.25;
-    const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,H+.5,12),new THREE.MeshStandardMaterial({color:0x5aa9e6,emissive:0x2a8fd0,emissiveIntensity:.5,transparent:true,opacity:.45}));
-    post.position.set(px,H/2,pz);boardGroup.add(post);
-    for(const yy of[-.25,H+.25]){const cap=new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),goldMat);cap.position.set(px,yy,pz);boardGroup.add(cap)}}
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(7.4,64),new THREE.MeshBasicMaterial({color:document.documentElement.dataset.theme=='dark'?0x1b2320:0xf9fbfd}));
-  floor.rotation.x=-Math.PI/2;floor.position.y=-.45;boardGroup.add(floor);
-  const rg=new THREE.Mesh(new THREE.RingGeometry(5.5,5.56,96),new THREE.MeshBasicMaterial({color:0x3aa0d8,transparent:true,opacity:.7,side:THREE.DoubleSide}));
-  rg.rotation.x=-Math.PI/2;rg.position.y=-.44;boardGroup.add(rg)}
+  // pied chromé en spirale, comme le jeu de la série
+  const pts=[];for(let i=0;i<=90;i++){const t=i/90,a=1.2+t*Math.PI*2.1;pts.push(new THREE.Vector3(Math.cos(a)*5.6,-.3+t*(H+.8),Math.sin(a)*5.4))}
+  boardGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),260,.07,12,false),chrome(0xe3e8ee,220)));
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(6.3,6.6,.28,64),chrome(0xc9d0da,160));base.position.y=-.6;boardGroup.add(base);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(6.35,.06,10,96),chrome(0xffffff,220));rim.rotation.x=Math.PI/2;rim.position.y=-.45;boardGroup.add(rim)}
 // pieces
 const LN={P:'Pion',R:'Tour',N:'Cavalier',B:'Fou',Q:'Dame',K:'Roi'};
 function lathe(pts){return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),24)}
-const MATS={w:{body:new THREE.MeshStandardMaterial({color:0xf3ead6,roughness:.32,metalness:.08}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})},
- b:{body:new THREE.MeshStandardMaterial({color:0x22252d,roughness:.22,metalness:.45}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})}};
+const MATS={w:{body:new THREE.MeshPhongMaterial({color:0xe6eaf0,specular:0xffffff,shininess:110}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})},
+ b:{body:new THREE.MeshPhongMaterial({color:0x1b1e24,specular:0x9aa3b2,shininess:90}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})}};
 function prof(pts,seg=56){const c=new THREE.SplineCurve(pts.map(p=>new THREE.Vector2(p[0],p[1])));return new THREE.LatheGeometry(c.getPoints(seg).map(v=>new THREE.Vector2(Math.max(0,v.x),v.y)),40)}
 function ring(add,M,y,r,t=.02){const o=add(new THREE.TorusGeometry(r,t,10,40),y,M.trim);o.rotation.x=Math.PI/2;return o}
 function plinth(add,M,r=.36){add(lathe([[0,0],[r,0],[r,.04],[r*.9,.07],[r*.9,.09],[r*.78,.12],[0,.12]]));ring(add,M,.075,r*.92,.018)}
@@ -402,7 +403,7 @@ function buildRules(){const th=thumbs();
   '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Les règles n\u2019ont jamais été fixées à l\u2019écran dans la série : cette version suit des règles de fans simplifiées (pas de roque ni de prise en passant). Un pat donne une partie nulle.</div>'}
 // ---------- état du jeu ----------
 let ST,turn,sel,legal,over,pieceObjs=[],hist=[],selB=null,slots=[];
-let puzzleMode=false,puzErr=0;
+let puzzleMode=false,puzErr=0,puzHome=false,puzMsg='',saved=null;
 const key=(x,y,z)=>x+','+y+','+z;
 const kx=k=>[k.charCodeAt(0)-48,k.charCodeAt(2)-48,k.charCodeAt(4)-48];
 const inGrid=(x,y,z)=>x>=0&&x<4&&y>=0&&y<8&&z>=0&&z<=6;
@@ -465,12 +466,13 @@ function legalAll(St,s){const out=[];
 const sq=c=>c[2]+'abcd'[c[0]]+(c[1]+1);
 function renderHist(){const o=$('hist');o.innerHTML='';if(!hist.length)o.innerHTML='<div class="empty">Aucun coup joué pour l’instant.</div>';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)})}
 function undo(){if(puzzleMode||!hist.length||over||thinking)return;let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
-function ui(msg){$('turn').textContent=turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';renderPlayers()}
+function ui(msg){if(puzHome&&document.body.dataset.view=='home'){puzMsg=msg||'';const pm=document.getElementById('pz-msg');if(pm)pm.textContent=msg||'Clique une pièce blanche, puis la case où elle va.'}
+  $('turn').textContent=turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';renderPlayers()}
 // ---------- affichage des pièces ----------
 function sync(){buildBoards();pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
   for(const [k,p] of ST.m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;o.userData.cell={x,y,z};scene.add(o);pieceObjs.push(o)}}
 function init(){
-  puzzleMode=false;document.body.classList.remove('puz');
+  puzzleMode=false;puzHome=false;document.body.classList.remove('puz');
   ST=newState();turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];clearTimeout(botT);thinking=false;eloDone=false;deltas={w:null,b:null};
   sync();ui();renderHist()}
 const ghostGroup=new THREE.Group();scene.add(ghostGroup);const ghostMeshes=[];
@@ -479,10 +481,10 @@ function paint(){
   if(selB){const b=ST.bd.find(o=>o.id==selB);for(const sl of slots){
     const m=new THREE.Mesh(new THREE.BoxGeometry(2,.14,2),new THREE.MeshStandardMaterial({color:0x38d27a,emissive:0x1fa85a,emissiveIntensity:.6,transparent:true,opacity:.5}));
     m.position.set((sl.x0+.5-1.5),sl.z*GAP-.05,(3.5-(b.y0+.5)));m.userData.slot=sl;ghostGroup.add(m);ghostMeshes.push(m)}}
-  for(const m of cellMeshes){const {x,y,z,base,bd}=m.userData;m.material.color.setHex(base);m.material.opacity=.86;
+  for(const m of cellMeshes){const {x,y,z,base,bd}=m.userData;m.material.color.setHex(base);m.material.opacity=.8;
     if(selB&&bd==selB){m.material.color.setHex(0xffe08a);m.material.opacity=.95}
     if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xffc83d);m.material.opacity=.97}
-    const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(ST.m.get(key(x,y,z))?0xff5d5d:0x5ef08a);m.material.opacity=.95}}}
+    const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(ST.m.get(key(x,y,z))?0xc1121f:0x5ef08a);m.material.opacity=.95}}}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
 function click(e){if(document.body.dataset.view!='play')return;if(over||thinking||(botOn()&&turn=='b'))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
   const hits=ray.intersectObjects([...ghostMeshes,...cellMeshes,...pieceObjs,...frameMeshes],true);
@@ -552,22 +554,19 @@ const dayIdx=()=>Math.floor((Date.now()-Date.UTC(2026,0,1))/864e5);
 const dayStr=()=>new Date().toISOString().slice(0,10);
 function puzState(i){const m=new Map();for(const [x,y,z,t,sd] of PUZZLES[i])m.set(key(x,y,z),{t,s:sd});return {m,bd:newState().bd}}
 const pzs=()=>store.get('c3d-puz',{date:'',solved:false,first:false,streak:0,record:0,last:''});
-function snapshot(st,w,h){
-  const keep={st:ST,sel,legal,selB,slots,az0:az,el0:el,d0:dist,pr:ren.getPixelRatio()};
-  ST=st;sel=null;legal=[];selB=null;slots=[];sync();
-  ren.setPixelRatio(1);ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();az=.7;el=.4;dist=19.5;updCam();
-  ren.render(scene,cam);const url=ren.domElement.toDataURL('image/png');
-  ST=keep.st;sel=keep.sel;legal=keep.legal;selB=keep.selB;slots=keep.slots;sync();
-  ren.setPixelRatio(keep.pr);az=keep.az0;el=keep.el0;dist=keep.d0;fit();updCam();return url}
-let puzImg='';
+const DEFMSG='Clique une pièce blanche, puis la case où elle va.';
+function puzIdx(){return ((dayIdx()%PUZZLES.length)+PUZZLES.length)%PUZZLES.length}
+function loadHomePuzzle(){puzHome=true;puzzleMode=true;puzErr=0;puzMsg='';clearTimeout(botT);thinking=false;
+  ST=puzState(puzIdx());turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];eloDone=true;deltas={w:null,b:null};
+  sync();renderHist();ui();paint()}
 function buildHome(){
-  const n=dayIdx()+1,i=((dayIdx()%PUZZLES.length)+PUZZLES.length)%PUZZLES.length,z=pzs();
-  if(!puzImg){try{puzImg=snapshot(puzState(i),680,560)}catch(e){puzImg=''}}
+  const n=dayIdx()+1,z=pzs();
   const solvedToday=z.date==dayStr()&&z.solved;
   const note=solvedToday?(z.first?'Bravo, trouvé du premier coup !':'Trouvé, mais pas du premier coup : la série repart demain.'):'Les Blancs jouent et font mat en un coup. Quel est le coup ?';
-  $('c-puz').innerHTML='<div class="hd"><h3>Puzzle du jour</h3><span class="pill">N° '+n+'</span></div><p class="tx">'+note+'</p><div class="pz">'+(puzImg?'<img alt="Position du puzzle" src="'+puzImg+'">':'')+'</div><button class="wbtn full pri" id="pz-go">'+(solvedToday?'Revoir le puzzle':'Résoudre le puzzle')+'</button>'+
+  $('c-puz').innerHTML='<div class="hd"><h3>Puzzle du jour</h3><span class="pill">N° '+n+'</span></div><p class="tx">'+note+'</p><div id="pz-board"></div><p class="pzm" id="pz-msg">'+esc(puzMsg||DEFMSG)+'</p><button class="wbtn full" id="pz-go">Recommencer le puzzle</button>'+
    '<div class="cfoot"><span><b>'+(z.streak?z.streak+' jour(s) de série':'Pas de série')+'</b> <small>· record '+z.record+'</small></span><button class="wbtn" id="pz-share">Partager</button></div>';
-  $('pz-go').onclick=()=>startPuzzle(i,n);
+  if(document.body.dataset.view=='home'){$('pz-board').appendChild(ren.domElement);fit()}
+  $('pz-go').onclick=()=>{loadHomePuzzle();buildHome()};
   $('pz-share').onclick=async e=>{const t='Échecs à trois dimensions · Puzzle n°'+n+(solvedToday?(z.first?' ✓ du premier coup':' ✓'):' : mat en un coup')+' '+location.origin+location.pathname;
     try{await navigator.clipboard.writeText(t);e.target.textContent='Copié'}catch(err){e.target.textContent='Copie impossible'}setTimeout(()=>e.target.textContent='Partager',1600)};
   const rows=rankRows().slice(0,3);
@@ -580,13 +579,6 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function logGame(res,delta){const g=store.get('c3d-games',[]);
   const bot=botOn();const txt=bot?(res=='w'?'Victoire':res=='b'?'Défaite':'Nulle'):(res=='d'?'Nulle':(res=='w'?pname('w'):pname('b'))+' gagne');
   const d=new Date();g.unshift({txt,opp:'contre '+pname('b'),d:String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),n:hist.length,delta:bot?delta:null});store.set('c3d-games',g.slice(0,20))}
-function startPuzzle(i,n){
-  puzzleMode=true;puzErr=0;clearTimeout(botT);thinking=false;
-  ST=puzState(i);turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];eloDone=true;deltas={w:null,b:null};
-  document.body.classList.add('puz');
-  $('puzbar').innerHTML='<b>Puzzle n°'+n+'</b>Les Blancs jouent et font mat en un coup. Trouve le coup.<br><button class="btn" id="pz-quit">Quitter le puzzle</button>';
-  $('pz-quit').onclick=()=>{init();paint()};
-  sync();ui('Mat en 1');renderHist();setView('play');paint()}
 function puzzleMove(m){
   const n2=applyMove(ST,m),k=findK(n2,'b');
   const mate=!!k&&attacked(n2,k,'w')&&legalAll(n2,'b').length==0;
@@ -597,25 +589,30 @@ function puzzleMove(m){
   if(z.date!=t){const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
     const streak=first?(z.last==y?z.streak+1:1):0;
     store.set('c3d-puz',{date:t,solved:true,first,streak,record:Math.max(z.record,streak),last:first?t:z.last})}
-  ui(first?'Échec et mat ! Du premier coup.':'Échec et mat ! Trouvé après '+puzErr+' erreur(s).');renderHist()}
+  ui(first?'Échec et mat ! Du premier coup.':'Échec et mat ! Trouvé après '+puzErr+' erreur(s).');renderHist();buildHome()}
+function capture(){return {ST,turn,hist:hist.slice(),over,eloDone,deltas:{...deltas}}}
+function restore(c){ST=c.ST;turn=c.turn;hist=c.hist;over=c.over;eloDone=c.eloDone;deltas=c.deltas;sel=null;legal=[];selB=null;slots=[];puzzleMode=false;puzHome=false;sync();ui();renderHist();paint();botNext()}
 function setView(v,quiet){
+  const prev=document.body.dataset.view;
+  if(prev=='play'&&v!='play'&&!puzHome)saved=capture();
   document.body.dataset.view=v;
   document.querySelectorAll('#nav a.lk').forEach(a=>a.classList.toggle('on',a.dataset.v==v));
   heroMode=v=='home';
-  const host=heroMode?$('disc'):stage;host.appendChild(ren.domElement);
-  if(heroMode){az=.7}else{az=.7;el=.42;zoomed=false}
-  if(v=='rank')buildRank();if(v=='home')buildHome();
+  if(v=='home'){$('disc').appendChild(ren2.domElement);if(!puzHome)loadHomePuzzle();buildHome();fit2()}
+  else{stage.appendChild(ren.domElement);if(ren2.domElement.parentElement)ren2.domElement.remove();
+    if(v=='play'){if(puzHome){puzHome=false;puzzleMode=false;if(saved){const c=saved;saved=null;restore(c)}else init()}az=.7;el=.42;zoomed=false}
+    if(v=='rank')buildRank()}
   fit();if(typeof paint==='function'&&typeof ST!=='undefined'&&ST)paint();
   if(!quiet){const h=v=='home'?'#/':v=='play'?'#/jouer':'#/classement';if(location.hash!==h)history.replaceState(null,'',h)}}
 function route(){const h=location.hash;setView(h.startsWith('#/jouer')?'play':h.startsWith('#/classement')?'rank':'home',true)}
 window.addEventListener('hashchange',route);
 document.querySelectorAll('#nav a.lk').forEach(a=>a.onclick=e=>{e.preventDefault();setView(a.dataset.v)});
 $('cta').onclick=()=>setView('play');
-function startMode(lvl){if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
+function startMode(lvl){saved=null;if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
 $('h-bot').onclick=()=>startMode(botOn()?botLvl:2);
 $('h-two').onclick=()=>startMode(0);
 $('h-rules').onclick=()=>{setView('play');document.querySelector('[data-t=rules]').click()};
 setTheme(store.get('c3d-theme','light'));
 if(location.search.includes('galerie')){setView('play',true)}else route();
-(function loop(){requestAnimationFrame(loop);if(heroMode){az+=.0035;updCam()}ren.render(scene,cam)})();
+(function loop(){requestAnimationFrame(loop);if(heroMode){az2+=.0035;updCam2();ren2.render(scene,cam2)}ren.render(scene,cam)})();
 </script></body></html>
