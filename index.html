@@ -175,6 +175,40 @@ NEW.U=(add,M,g)=>{
   // crinière dorée
   for(let i=0;i<5;i++){const m=add(new THREE.SphereGeometry(.05-.006*i,12,10),.78-i*.09,M.trim);m.position.z=.12+i*.025;}
 }//endU
+NEW.Q=(add,M)=>{
+  plinth(add,M,.37);
+  add(prof([[0,.1],[.3,.12],[.22,.24],[.14,.55],[.11,.9],[.16,1.0]]));
+  ring(add,M,.4,.19,.014);ring(add,M,.7,.125,.012);
+  // collerette large
+  add(lathe([[0,.95],[.25,.95],[.27,1.0],[.17,1.06],[0,1.07]]));
+  ring(add,M,1.0,.265,.015);
+  // coupe de la couronne
+  add(lathe([[0,1.02],[.12,1.05],[.19,1.14],[.24,1.24],[.215,1.24],[.15,1.16],[0,1.12]]));
+  ring(add,M,1.235,.228,.016);
+  // pointes à perles dorées
+  const sp=new THREE.ConeGeometry(.035,.17,12);
+  for(let i=0;i<9;i++){const a=i*Math.PI*2/9;
+    const c=add(sp,1.33);c.position.x=Math.cos(a)*.225;c.position.z=Math.sin(a)*.225;
+    const b=add(new THREE.SphereGeometry(.035,14,10),1.43,M.trim);b.position.x=Math.cos(a)*.225;b.position.z=Math.sin(a)*.225}
+  // grosse perle centrale
+  add(new THREE.SphereGeometry(.075,24,18),1.2,M.trim).position.y=1.22;
+  add(new THREE.SphereGeometry(.06,24,18),1.3,M.trim);
+}//endQ
+NEW.K=(add,M)=>{
+  plinth(add,M,.38);
+  add(prof([[0,.1],[.31,.12],[.23,.25],[.15,.58],[.12,.95],[.17,1.05]]));
+  ring(add,M,.42,.2,.014);ring(add,M,.74,.135,.012);
+  add(lathe([[0,1.0],[.26,1.0],[.28,1.05],[.18,1.11],[0,1.12]]));
+  ring(add,M,1.05,.275,.015);
+  // couronne : bandeau + arceaux dorés
+  add(lathe([[0,1.08],[.21,1.12],[.25,1.25],[.22,1.3],[.18,1.3],[.2,1.24],[.15,1.14],[0,1.16]]));
+  ring(add,M,1.27,.235,.018);
+  for(let i=0;i<4;i++){const a=i*Math.PI/2;const t=add(new THREE.TorusGeometry(.2,.018,8,24,Math.PI),1.28,M.trim);t.rotation.y=a;t.scale.set(1,.55,1)}
+  add(new THREE.SphereGeometry(.06,20,14),1.4,M.trim);
+  // croix
+  add(new THREE.BoxGeometry(.05,.24,.05),1.55,M.trim);
+  add(new THREE.BoxGeometry(.17,.05,.05),1.58,M.trim);
+}//endK
 //@@NEW
 function makePiece(t,side){
   const M=MATS[side];const mat=M.body;
