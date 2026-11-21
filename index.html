@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Échecs 3D – Raumschach</title>
+<style>
+html,body{margin:0;height:100%;background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;overflow:hidden}
+#ui{position:fixed;top:12px;left:12px;background:#161b22cc;border:1px solid #30363d;border-radius:10px;padding:10px 14px;max-width:260px;font-size:14px}
+#ui h1{font-size:16px;margin:0 0 6px}#turn{font-weight:700}#msg{color:#f0b429;min-height:18px;margin-top:4px}
+button{margin-top:8px;background:#238636;color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+#legend{position:fixed;bottom:12px;left:12px;font-size:12px;color:#8b949e}
+</style></head><body>
+<div id="ui"><h1>Échecs 3D · Raumschach 5×5×5</h1><div>Trait : <span id="turn"></span></div><div id="msg"></div>
+<button id="reset">Nouvelle partie</button></div>
+<div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Étages A (bas) → E (haut)</div>
+<script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const N=5, GAP=2.3, S=1.0;
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0d1117);
+const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+const ren=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(ren.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x334455,1.1));
+const dl=new THREE.DirectionalLight(0xffffff,1.3);dl.position.set(6,12,8);scene.add(dl);
+// orbit
+let az=0.7,el=0.45,dist=17;const target=new THREE.Vector3(0,(N-1)*GAP/2,0);
+function updCam(){cam.position.set(target.x+dist*Math.cos(el)*Math.sin(az),target.y+dist*Math.sin(el),target.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(target);}
+updCam();
+let drag=null,moved=0;
+ren.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=0});
+addEventListener('pointerup',e=>{if(drag&&moved<5)click(e);drag=null});
+addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);az-=dx*.006;el=Math.max(-.2,Math.min(1.4,el+dy*.005));drag={x:e.clientX,y:e.clientY};updCam()});
+addEventListener('wheel',e=>{dist=Math.max(8,Math.min(30,dist+e.deltaY*.01));updCam()});
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+// coords: x file, y rank, z level ; world: X=x, Y=z*GAP, Z=y
+const wp=(x,y,z)=>new THREE.Vector3((x-2)*S,z*GAP,(2-y)*S);
+const cells=[],cellMeshes=[];
+const lc=[0xb58863,0xf0d9b5];
+for(let z=0;z<N;z++){
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(N*S+.2,.08,N*S+.2),new THREE.MeshStandardMaterial({color:0x1f2937,transparent:true,opacity:.35}));
+  slab.position.set(0,z*GAP-.07,0);scene.add(slab);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(S*.98,.05,S*.98),new THREE.MeshStandardMaterial({color:lc[(x+y+z)%2],transparent:true,opacity:.62}));
+    m.position.copy(wp(x,y,z));m.userData={x,y,z,base:lc[(x+y+z)%2]};scene.add(m);cellMeshes.push(m);
+  }
+}
+// level labels
+function label(t,p){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.fillStyle='#8b949e';g.font='bold 90px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText(t,64,70);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.position.copy(p);s.scale.set(.8,.8,1);scene.add(s)}
+'ABCDE'.split('').forEach((l,z)=>label(l,new THREE.Vector3(-3.4,z*GAP,0)));
+// pieces
+const LN={P:'Pion',R:'Tour',N:'Cavalier',B:'Fou',U:'Licorne',Q:'Dame',K:'Roi'};
+function lathe(pts){return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),24)}
+function makePiece(t,side){
+  const col=side=='w'?0xf3ead7:0x2b2f3a;
+  const mat=new THREE.MeshStandardMaterial({color:col,roughness:.45,metalness:.15});
+  const g=new THREE.Group();const add=(geo,y=0)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y;g.add(m);return m};
+  const base=[[0,0],[.34,0],[.34,.08],[.26,.14]];
+  if(t=='P'){add(lathe([...base,[.15,.35],[.12,.45],[0,.45]]));add(new THREE.SphereGeometry(.17,16,12),.55)}
+  if(t=='R'){add(lathe([...base,[.24,.55],[.3,.6],[.3,.72],[0,.72]]));for(let i=0;i<4;i++){const m=add(new THREE.BoxGeometry(.12,.12,.12),.78);m.position.x=Math.cos(i*Math.PI/2)*.2;m.position.z=Math.sin(i*Math.PI/2)*.2}}
+  if(t=='N'){add(lathe([...base,[.2,.4],[0,.4]]));const h=add(new THREE.BoxGeometry(.24,.5,.4),.62);h.rotation.x=.4;const s=add(new THREE.BoxGeometry(.2,.18,.28),.75);s.position.z=.26}
+  if(t=='B'){add(lathe([...base,[.14,.6],[.2,.7],[.1,.9],[0,.95]]));add(new THREE.SphereGeometry(.07,10,8),1)}
+  if(t=='U'){add(lathe([...base,[.2,.45],[.26,.55],[0,.55]]));add(new THREE.ConeGeometry(.07,.5,10),.85).rotation.z=-.25}
+  if(t=='Q'){add(lathe([...base,[.15,.7],[.28,.85],[.25,.95],[0,.95]]));add(new THREE.SphereGeometry(.09,12,10),1.05)}
+  if(t=='K'){add(lathe([...base,[.15,.7],[.26,.85],[.26,.95],[0,.95]]));add(new THREE.BoxGeometry(.08,.3,.08),1.12);add(new THREE.BoxGeometry(.22,.08,.08),1.15)}
+  g.userData.t=t;g.userData.side=side;return g;
+}
+// game state
+let board,turn,sel,legal,over,pieceObjs;
+const key=(x,y,z)=>x+','+y+','+z;
+function init(){
+  if(pieceObjs)pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
+  board=new Map();turn='w';sel=null;legal=[];over=false;
+  const back0='RNKNR',back1='BUQUB';
+  const put=(x,y,z,t,s)=>board.set(key(x,y,z),{t,s});
+  for(let x=0;x<N;x++){
+    put(x,0,0,back0[x],'w');put(x,0,1,back1[x],'w');put(x,1,0,'P','w');put(x,1,1,'P','w');
+    put(x,4,4,back0[x],'b');put(x,4,3,back1[x],'b');put(x,3,4,'P','b');put(x,3,3,'P','b');
+  }
+  sync();ui();
+}
+function sync(){pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
+  for(const [k,p] of board){const [x,y,z]=k.split(',').map(Number);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;o.userData.cell={x,y,z};scene.add(o);pieceObjs.push(o)}}
+const inb=(x,y,z)=>x>=0&&x<N&&y>=0&&y<N&&z>=0&&z<N;
+const D1=[-1,0,1];
+function slide(b,x,y,z,dirs,s,out){for(const d of dirs){let a=x+d[0],c=y+d[1],e=z+d[2];while(inb(a,c,e)){const o=b.get(key(a,c,e));if(o){if(o.s!=s)out.push([a,c,e]);break}out.push([a,c,e]);a+=d[0];c+=d[1];e+=d[2]}}}
+const AX=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+const DIAG=[],TRI=[],ALL=[];
+for(const a of D1)for(const b of D1)for(const c of D1){const n=Math.abs(a)+Math.abs(b)+Math.abs(c);if(n==2)DIAG.push([a,b,c]);if(n==3)TRI.push([a,b,c]);if(n)ALL.push([a,b,c])}
+function pseudo(b,x,y,z){
+  const p=b.get(key(x,y,z));const out=[];const s=p.s;
+  const step=(dirs)=>{for(const d of dirs){const a=x+d[0],c=y+d[1],e=z+d[2];if(!inb(a,c,e))continue;const o=b.get(key(a,c,e));if(!o||o.s!=s)out.push([a,c,e])}};
+  switch(p.t){
+    case 'R':slide(b,x,y,z,AX,s,out);break;
+    case 'B':slide(b,x,y,z,DIAG,s,out);break;
+    case 'U':slide(b,x,y,z,TRI,s,out);break;
+    case 'Q':slide(b,x,y,z,[...AX,...DIAG,...TRI],s,out);break;
+    case 'K':step(ALL);break;
+    case 'N':{const d=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){if(i==j)continue;for(const a of[-2,2])for(const c of[-1,1]){const v=[0,0,0];v[i]=a;v[j]=c;d.push(v)}}step(d);break}
+    case 'P':{const f=s=='w'?1:-1;
+      for(const ax of[1,2]){const v=[x,y,z];v[ax]+=f;if(inb(...v)&&!b.get(key(...v)))out.push(v)}
+      // captures: forward (rank or level) + lateral
+      for(const ax of[1,2])for(const lat of[0,1,2]){if(lat==ax)continue;for(const l of[-1,1]){const v=[x,y,z];v[ax]+=f;v[lat]+=l;if(inb(...v)){const o=b.get(key(...v));if(o&&o.s!=s)out.push(v)}}}
+      break}
+  }
+  return out;
+}
+function findK(b,s){for(const [k,p] of b)if(p.t=='K'&&p.s==s)return k.split(',').map(Number)}
+function attacked(b,pos,by){for(const [k,p] of b){if(p.s!=by)continue;const [x,y,z]=k.split(',').map(Number);
+  if(p.t=='P'){const f=by=='w'?1:-1;for(const ax of[1,2])for(const lat of[0,1,2]){if(lat==ax)continue;for(const l of[-1,1]){const v=[x,y,z];v[ax]+=f;v[lat]+=l;if(v[0]==pos[0]&&v[1]==pos[1]&&v[2]==pos[2])return true}}}
+  else for(const m of pseudo(b,x,y,z))if(m[0]==pos[0]&&m[1]==pos[1]&&m[2]==pos[2])return true}return false}
+function apply(b,from,to){const nb=new Map(b);const p=nb.get(key(...from));nb.delete(key(...from));
+  let q={...p};if(p.t=='P'&&((p.s=='w'&&(to[1]==4||to[2]==4))||(p.s=='b'&&(to[1]==0||to[2]==0))))q.t='Q';nb.set(key(...to),q);return nb}
+function legalMoves(b,x,y,z){const s=b.get(key(x,y,z)).s;return pseudo(b,x,y,z).filter(t=>{const nb=apply(b,[x,y,z],t);const k=findK(nb,s);return k&&!attacked(nb,k,s=='w'?'b':'w')})}
+function anyMove(b,s){for(const [k,p] of b)if(p.s==s){const [x,y,z]=k.split(',').map(Number);if(legalMoves(b,x,y,z).length)return true}return false}
+function ui(msg){document.getElementById('turn').textContent=turn=='w'?'Blancs':'Noirs';document.getElementById('msg').textContent=msg||''}
+function paint(){for(const m of cellMeshes){const {x,y,z,base}=m.userData;m.material.color.setHex(base);m.material.opacity=.62;
+  if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xf0b429);m.material.opacity=.95}
+  const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(board.get(key(x,y,z))?0xe5534b:0x3fb950);m.material.opacity=.95}}}
+const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
+function click(e){if(over)return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
+  const hits=ray.intersectObjects([...cellMeshes,...pieceObjs],true);if(!hits.length)return;
+  let o=hits[0].object;let c;while(o){if(o.userData.cell){c=o.userData.cell;break}if(o.userData.base!==undefined){c=o.userData;break}o=o.parent}
+  if(c)play(c.x,c.y,c.z)}
+function play(x,y,z){const p=board.get(key(x,y,z));
+  if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
+    const k=findK(board,turn),chk=attacked(board,k,turn=='w'?'b':'w'),has=anyMove(board,turn);
+    if(!has){over=true;ui(chk?'Échec et mat ! '+(turn=='w'?'Les Noirs':'Les Blancs')+' gagnent.':'Pat — partie nulle.')}else ui(chk?'Échec !':'');paint();return}
+  if(p&&p.s==turn){sel=[x,y,z];legal=legalMoves(board,x,y,z);ui(LN[p.t]+' — '+legal.length+' coup(s)')}else{sel=null;legal=[]}
+  paint()}
+document.getElementById('reset').onclick=()=>{init();paint()};
+window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()}};
+init();paint();
+(function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
+</script></body></html>
