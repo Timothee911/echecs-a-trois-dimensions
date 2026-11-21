@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Échecs 3D – Raumschach</title>
+<title>Échecs à trois dimensions</title>
 <style>
 :root{--bg:#f3f6fa;--ink:#1b2430;--mut:#667385;--card:#fff;--line:#e2e8f0;--acc:#1f7a8c;--acc2:#16606f;--gold:#c8962b;--bad:#d64545}
 *{box-sizing:border-box}
@@ -53,7 +53,7 @@ body{display:flex}
 @media(max-width:860px){body{flex-direction:column}#stage{order:0;flex:1 1 55%;min-height:0}#side{order:1;width:100%;flex:0 0 auto;max-height:46vh;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 24px #1b243010}#legend{display:none}}
 </style></head><body>
 <aside id="side">
-  <div class="brand"><div class="logo">♞</div><div><h1>Échecs 3D</h1><small>Raumschach · 5 étages · 5×5×5</small></div></div>
+  <div class="brand"><div class="logo">♞</div><div><h1>Échecs à trois dimensions</h1><small>Raumschach · 5 étages · 5×5×5</small></div></div>
   <div class="pcard" id="pc-b"><div class="av b">♚</div><div class="pinfo"><input class="pname" id="nm-b" maxlength="16" aria-label="Nom des Noirs"><div class="psub">Noirs <span class="delta" id="dl-b"></span></div></div><div class="elo"><b id="el-b">1200</b><span>ELO</span></div></div>
   <div class="pcard" id="pc-w"><div class="av w">♔</div><div class="pinfo"><input class="pname" id="nm-w" maxlength="16" aria-label="Nom des Blancs"><div class="psub">Blancs <span class="delta" id="dl-w"></span></div></div><div class="elo"><b id="el-w">1200</b><span>ELO</span></div></div>
   <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>

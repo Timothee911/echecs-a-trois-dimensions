@@ -1,6 +1,6 @@
-# Échecs 3D
+# Échecs à trois dimensions
 
-Jeu d'échecs en 3D sur 5 étages (Raumschach 5×5×5), en three.js. Deux joueurs sur le même écran.
+Jeu d'échecs à trois dimensions sur 5 étages (Raumschach 5×5×5), en three.js. Deux joueurs sur le même écran.
 
 ![Aperçu](apercu.png)
 
