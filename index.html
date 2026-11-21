@@ -91,6 +91,29 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
 .rrow .n{width:26px;font:700 15px ui-monospace,Menlo,monospace;color:var(--mut)}
 .rrow .nm{flex:1;font-weight:700}.rrow .nm small{display:block;color:var(--mut);font-weight:500;font-size:12px}
 .rrow .e{font-size:22px;font-weight:800;letter-spacing:-.02em}
+
+.cards{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:18px;padding:6px 0 28px}
+.card{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:22px;display:flex;flex-direction:column;min-width:0}
+.card .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.card h3{margin:0;font-size:21px;letter-spacing:-.02em}
+.pill{font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 9px;white-space:nowrap}
+.card .tx{color:var(--mut);font-size:14px;line-height:1.5;margin:0 0 12px}
+.pz{border-radius:16px;background:radial-gradient(circle at 40% 30%,var(--disc1),var(--disc2));display:grid;place-items:center;padding:6px;margin-bottom:12px}
+.pz img{width:100%;max-width:340px;display:block}
+.card .grow{flex:1}
+.cfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:14px;margin-top:14px;font-size:14px}
+.cfoot small{color:var(--mut)}
+.wbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:9px 14px;font:700 13px inherit;cursor:pointer}
+.wbtn.full{width:100%;padding:13px}.wbtn.pri{background:var(--acc);border-color:var(--acc);color:var(--accfg)}
+.mini{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.mini:last-child{border:0}.mini .n{width:18px;color:var(--mut);font:600 13px ui-monospace,Menlo,monospace}
+.mini .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini .nm small{display:block;color:var(--mut);font-weight:500;font-size:12px}
+.mini .e{font:800 16px ui-monospace,Menlo,monospace}
+.dl{font:700 12px ui-monospace,Menlo,monospace;border-radius:99px;padding:2px 8px}.dl.up{background:#e3f6ea;color:#18864b}.dl.dn{background:#fde8e8;color:var(--bad)}.dl.eq{background:var(--bg);color:var(--mut)}
+#puzbar{display:none;border:1px solid var(--acc);background:var(--bg);border-radius:14px;padding:12px;margin-bottom:10px;font-size:13px;line-height:1.5}
+#puzbar b{display:block;font-size:14px;margin-bottom:2px}#puzbar button{margin-top:8px}
+body.puz #puzbar{display:block}
+@media(max-width:1000px){.cards{grid-template-columns:1fr}}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
 </style></head><body>
 <header id="nav">
@@ -115,6 +138,11 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
     </div>
     <div id="disc"></div>
   </div>
+  <div class="cards">
+    <div class="card" id="c-puz"></div>
+    <div class="card" id="c-rank"></div>
+    <div class="card" id="c-games"></div>
+  </div>
   <div class="feats">
     <div class="feat"><div class="ic">▦</div><b>Plateaux d’attaque mobiles</b><span>Au lieu de jouer une pièce, déplace un plateau 2×2 d’un niveau ou de l’autre côté, avec ses pièces.</span></div>
     <div class="feat"><div class="ic">♞</div><b>Un bot à trois niveaux</b><span>Facile, Moyen ou Fort. Il joue les Noirs et sait lui aussi déplacer ses plateaux d’attaque.</span></div>
@@ -129,6 +157,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
   <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>
   <div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
   <div class="pane on" id="game">
+    <div id="puzbar"></div>
     <label class="sel">Adversaire<select id="opp"><option value="1">Bot · Facile (800)</option><option value="2">Bot · Moyen (1200)</option><option value="3">Bot · Fort (1500)</option><option value="0">Deux joueurs</option></select></label>
     <div class="btns"><button class="btn pri" id="reset">Nouvelle partie</button><button class="btn" id="undo">Annuler le coup</button><button class="btn dng" id="resign">Abandonner</button><button class="btn" id="swap">Inverser les camps</button></div>
     <p class="hint">Tu joues les Blancs, le bot joue les Noirs. Pour déplacer un plateau d’attaque, clique sur son cadre puis sur un emplacement vert. Chaque partie se termine par un échec et mat, un pat ou un abandon, et modifie ton ELO selon le niveau du bot (calcul standard, K = 32). Ton classement est gardé dans ce navigateur.</p>
@@ -344,8 +373,8 @@ function finish(res){ // res : 'w' | 'b' | 'd'
   const dw=Math.round(K*(sw-ew)),db=-dw;
   players.w.elo+=dw;players.w.g++;
   if(botOn())deltas={w:dw,b:null};else{players.b.elo+=db;players.b.g++;deltas={w:dw,b:db}}
-  store.set('c3d-players',players);renderPlayers()}
-function resign(){if(over||thinking)return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
+  store.set('c3d-players',players);logGame(res,dw);renderPlayers()}
+function resign(){if(over||thinking||puzzleMode)return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
   over=true;sel=null;legal=[];finish(turn=='w'?'b':'w');ui(pname(turn=='w'?'b':'w')+' gagne par abandon');paint()}
 $('resign').onclick=resign;
 $('opp').value=String(botLvl);
@@ -373,6 +402,7 @@ function buildRules(){const th=thumbs();
   '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Les règles n\u2019ont jamais été fixées à l\u2019écran dans la série : cette version suit des règles de fans simplifiées (pas de roque ni de prise en passant). Un pat donne une partie nulle.</div>'}
 // ---------- état du jeu ----------
 let ST,turn,sel,legal,over,pieceObjs=[],hist=[],selB=null,slots=[];
+let puzzleMode=false,puzErr=0;
 const key=(x,y,z)=>x+','+y+','+z;
 const kx=k=>[k.charCodeAt(0)-48,k.charCodeAt(2)-48,k.charCodeAt(4)-48];
 const inGrid=(x,y,z)=>x>=0&&x<4&&y>=0&&y<8&&z>=0&&z<=6;
@@ -434,12 +464,13 @@ function legalAll(St,s){const out=[];
   for(const m of boardMoves(St,s))if(isLegal(St,m,s))out.push(m);return out}
 const sq=c=>c[2]+'abcd'[c[0]]+(c[1]+1);
 function renderHist(){const o=$('hist');o.innerHTML='';if(!hist.length)o.innerHTML='<div class="empty">Aucun coup joué pour l’instant.</div>';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)})}
-function undo(){if(!hist.length||over||thinking)return;let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
+function undo(){if(puzzleMode||!hist.length||over||thinking)return;let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
 function ui(msg){$('turn').textContent=turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';renderPlayers()}
 // ---------- affichage des pièces ----------
 function sync(){buildBoards();pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
   for(const [k,p] of ST.m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;o.userData.cell={x,y,z};scene.add(o);pieceObjs.push(o)}}
 function init(){
+  puzzleMode=false;document.body.classList.remove('puz');
   ST=newState();turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];clearTimeout(botT);thinking=false;eloDone=false;deltas={w:null,b:null};
   sync();ui();renderHist()}
 const ghostGroup=new THREE.Group();scene.add(ghostGroup);const ghostMeshes=[];
@@ -467,6 +498,7 @@ function selBoard(id){const b=ST.bd.find(o=>o.id==id);if(!b)return;
   const ms=legalAll(ST,turn).filter(m=>m.k=='b'&&m.id==id);sel=null;legal=[];selB=id;slots=ms.map(m=>({x0:m.x0,z:m.z}));
   ui('Plateau '+id+' : '+(slots.length?slots.length+' emplacement(s)':'aucun déplacement possible'));paint()}
 function commit(m){
+  if(puzzleMode){puzzleMove(m);return}
   const mover=m.k=='p'?ST.m.get(key(...m.f)):null,cap=m.k=='p'?ST.m.get(key(...m.t)):null;
   const txt=m.k=='p'?(mover.t=='P'?'':mover.t)+sq(m.f)+(cap?'×':'→')+sq(m.t):'Plateau '+m.id+' → niv. '+m.z+(m.x0?' droite':' gauche');
   hist.push({before:ST,s:turn,txt});ST=applyMove(ST,m);sel=null;legal=[];selB=null;slots=[];turn=turn=='w'?'b':'w';sync();
@@ -503,22 +535,76 @@ function botNext(){if(!botOn()||over||turn!='b')return;thinking=true;const pre=$
 document.getElementById('undo').onclick=undo;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>{init();paint()};
+window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,z:slots[i].z}),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 applyMode();buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 
 // ---------- navigation, thème, accueil, classement ----------
 function setTheme(t){document.documentElement.dataset.theme=t;store.set('c3d-theme',t);if(typeof ST!=='undefined'&&ST){buildBoards();paint()}}
 $('theme').onclick=()=>setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark');
-function buildRank(){const me=players.w,rows=[{n:me.name,e:me.elo,sub:me.g+' partie(s) jouée(s)',me:true},{n:'Bot · Fort',e:BOT[3].e,sub:'Niveau fixe'},{n:'Bot · Moyen',e:BOT[2].e,sub:'Niveau fixe'},{n:'Bot · Facile',e:BOT[1].e,sub:'Niveau fixe'}];
-  rows.sort((a,b)=>b.e-a.e);
+function rankRows(){const me=players.w,rows=[{n:me.name,e:me.elo,sub:me.g+' partie(s) jouée(s)',me:true},{n:'Bot · Fort',e:BOT[3].e,sub:'Niveau fixe'},{n:'Bot · Moyen',e:BOT[2].e,sub:'Niveau fixe'},{n:'Bot · Facile',e:BOT[1].e,sub:'Niveau fixe'}];rows.sort((a,b)=>b.e-a.e);return rows}
+function buildRank(){const rows=rankRows();
   $('rank-list').innerHTML=rows.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><span class="n">'+(i+1)+'</span><div class="nm">'+r.n.replace(/</g,'&lt;')+(r.me?' (toi)':'')+'<small>'+r.sub+'</small></div><span class="e">'+r.e+'</span></div>').join('')}
+
+// ---------- puzzle du jour, classement, parties ----------
+const PUZZLES=[[[2,0,3,"K","w"],[1,5,5,"Q","w"],[2,4,3,"B","w"],[1,3,5,"N","w"],[0,4,3,"K","b"],[0,4,1,"N","b"],[2,3,5,"N","b"],[3,3,1,"P","b"]],[[2,0,3,"K","w"],[1,6,3,"Q","w"],[1,4,1,"R","w"],[3,4,1,"B","w"],[3,5,1,"K","b"]],[[3,2,1,"K","w"],[1,3,5,"Q","w"],[2,5,1,"R","w"],[3,0,3,"N","w"],[3,2,5,"P","w"],[0,5,5,"K","b"],[0,3,3,"R","b"],[1,5,3,"P","b"]],[[0,5,3,"K","w"],[0,0,1,"Q","w"],[2,3,1,"R","w"],[2,4,1,"B","w"],[2,3,5,"N","w"],[1,4,5,"K","b"],[2,5,5,"P","b"],[2,2,3,"P","b"]],[[3,6,5,"K","w"],[2,4,3,"Q","w"],[2,6,5,"R","w"],[1,2,5,"K","b"],[0,3,5,"R","b"]],[[1,4,1,"K","w"],[1,4,3,"Q","w"],[1,5,5,"B","w"],[3,4,1,"N","w"],[0,7,3,"K","b"]],[[1,5,5,"K","w"],[2,2,5,"Q","w"],[0,5,3,"B","w"],[3,7,5,"K","b"],[0,4,3,"P","b"],[2,4,1,"R","b"]],[[1,2,5,"K","w"],[1,5,1,"Q","w"],[3,0,3,"R","w"],[2,5,5,"N","w"],[1,4,5,"P","w"],[0,5,3,"K","b"]],[[1,2,3,"K","w"],[2,0,3,"Q","w"],[0,4,1,"R","w"],[3,5,5,"B","w"],[1,4,1,"N","w"],[0,3,1,"P","w"],[0,3,5,"K","b"],[0,6,3,"P","b"],[2,4,1,"R","b"],[0,2,5,"R","b"]],[[3,3,5,"K","w"],[0,6,3,"Q","w"],[1,5,1,"R","w"],[3,7,5,"B","w"],[0,5,5,"N","w"],[2,5,5,"P","w"],[2,7,5,"K","b"]],[[3,5,5,"K","w"],[3,6,5,"Q","w"],[2,5,3,"R","w"],[2,4,5,"N","w"],[3,3,3,"K","b"]],[[0,6,3,"K","w"],[0,4,3,"Q","w"],[0,4,1,"R","w"],[2,6,5,"B","w"],[2,2,3,"P","w"],[3,5,1,"K","b"]],[[3,6,5,"K","w"],[3,4,5,"Q","w"],[1,4,1,"B","w"],[1,3,5,"N","w"],[3,3,1,"K","b"],[0,6,3,"B","b"],[1,2,1,"P","b"]],[[3,5,1,"K","w"],[1,2,3,"Q","w"],[2,7,5,"R","w"],[0,5,3,"B","w"],[3,5,5,"K","b"],[0,3,5,"P","b"],[0,2,1,"P","b"],[0,1,1,"P","b"]],[[1,2,5,"K","w"],[2,5,1,"Q","w"],[0,3,3,"R","w"],[0,7,3,"B","w"],[3,2,1,"N","w"],[2,6,5,"P","w"],[1,4,3,"K","b"]],[[2,4,1,"K","w"],[2,1,3,"Q","w"],[2,3,1,"R","w"],[3,2,5,"K","b"]],[[0,4,1,"K","w"],[2,4,5,"Q","w"],[2,2,1,"R","w"],[1,1,1,"B","w"],[1,3,3,"P","w"],[3,3,1,"K","b"],[0,5,3,"R","b"]],[[3,3,3,"K","w"],[0,2,3,"Q","w"],[0,1,1,"R","w"],[0,4,5,"B","w"],[0,6,3,"P","w"],[3,2,5,"K","b"],[3,4,1,"P","b"],[2,0,3,"R","b"],[1,2,1,"N","b"]],[[1,3,1,"K","w"],[1,7,3,"Q","w"],[1,5,1,"B","w"],[3,2,1,"N","w"],[0,3,3,"K","b"]],[[2,4,5,"K","w"],[1,4,3,"Q","w"],[3,2,1,"R","w"],[2,1,3,"N","w"],[0,5,5,"K","b"]],[[2,7,5,"K","w"],[3,3,3,"Q","w"],[1,2,5,"R","w"],[2,5,1,"N","w"],[0,3,1,"K","b"],[1,4,1,"P","b"],[1,5,5,"P","b"],[0,5,3,"B","b"]],[[0,3,1,"K","w"],[3,4,3,"Q","w"],[3,4,1,"R","w"],[2,5,3,"P","w"],[1,5,1,"K","b"]],[[2,4,3,"K","w"],[1,3,5,"Q","w"],[0,4,3,"R","w"],[0,0,1,"B","w"],[0,5,5,"K","b"],[3,7,5,"B","b"],[0,1,1,"P","b"],[1,2,1,"R","b"]],[[1,4,5,"K","w"],[0,2,1,"Q","w"],[0,3,1,"R","w"],[3,3,1,"P","w"],[3,4,1,"K","b"],[0,5,3,"R","b"],[3,2,1,"P","b"]],[[0,2,5,"K","w"],[0,6,3,"Q","w"],[1,3,1,"R","w"],[3,4,3,"B","w"],[0,2,1,"K","b"],[2,0,3,"R","b"],[2,4,5,"P","b"],[0,4,5,"P","b"]],[[2,1,3,"K","w"],[1,5,1,"Q","w"],[0,2,1,"R","w"],[1,6,3,"N","w"],[2,3,1,"K","b"],[3,1,3,"P","b"]],[[0,6,3,"K","w"],[0,1,1,"Q","w"],[3,5,3,"R","w"],[2,3,5,"B","w"],[2,4,3,"P","w"],[0,4,3,"K","b"],[3,4,3,"N","b"],[0,5,5,"P","b"]],[[3,6,5,"K","w"],[0,4,5,"Q","w"],[0,5,5,"R","w"],[3,4,5,"B","w"],[0,3,5,"N","w"],[2,2,3,"P","w"],[3,2,5,"K","b"],[3,7,5,"B","b"],[1,5,1,"R","b"]],[[3,5,3,"K","w"],[0,2,5,"Q","w"],[1,3,1,"R","w"],[2,3,5,"N","w"],[2,4,3,"P","w"],[0,3,3,"K","b"],[1,6,3,"B","b"],[1,2,5,"P","b"]],[[1,2,1,"K","w"],[1,3,3,"Q","w"],[2,2,5,"R","w"],[0,6,3,"P","w"],[0,7,3,"K","b"],[3,4,3,"N","b"],[3,7,5,"R","b"]],[[2,5,5,"K","w"],[3,4,3,"Q","w"],[1,2,3,"R","w"],[0,4,5,"K","b"]],[[2,0,3,"K","w"],[3,4,5,"Q","w"],[2,5,1,"R","w"],[3,2,3,"N","w"],[2,3,3,"P","w"],[0,5,5,"K","b"],[1,3,1,"R","b"],[1,3,5,"P","b"],[3,3,1,"P","b"]],[[2,4,3,"K","w"],[3,2,1,"Q","w"],[2,7,5,"R","w"],[3,1,3,"B","w"],[3,5,5,"K","b"]],[[3,5,5,"K","w"],[3,6,5,"Q","w"],[2,4,3,"N","w"],[3,2,5,"P","w"],[1,5,5,"K","b"],[2,3,1,"R","b"],[3,4,3,"P","b"]],[[2,6,5,"K","w"],[3,3,3,"Q","w"],[1,4,1,"R","w"],[2,5,3,"B","w"],[2,4,5,"K","b"],[3,3,5,"N","b"],[0,0,1,"R","b"]],[[3,7,5,"K","w"],[2,4,3,"Q","w"],[1,4,1,"R","w"],[0,5,1,"K","b"],[2,5,1,"P","b"]],[[2,6,5,"K","w"],[0,4,3,"Q","w"],[3,2,3,"R","w"],[1,2,3,"K","b"],[2,2,3,"R","b"],[3,3,5,"N","b"]],[[0,3,3,"K","w"],[2,1,3,"Q","w"],[2,6,5,"R","w"],[3,4,5,"N","w"],[3,2,5,"K","b"],[3,5,1,"P","b"]],[[2,3,3,"K","w"],[2,3,5,"Q","w"],[3,2,3,"B","w"],[2,5,1,"N","w"],[1,3,5,"P","w"],[3,1,3,"K","b"],[1,6,3,"P","b"],[0,2,1,"B","b"],[2,2,3,"N","b"]],[[3,1,3,"K","w"],[1,5,5,"Q","w"],[1,2,5,"N","w"],[3,4,5,"K","b"],[0,4,1,"R","b"],[2,3,5,"P","b"]],[[1,0,1,"K","w"],[2,6,5,"Q","w"],[0,4,3,"R","w"],[0,2,3,"N","w"],[0,2,5,"K","b"],[1,4,1,"P","b"],[1,5,5,"P","b"],[3,3,5,"R","b"]],[[3,3,3,"K","w"],[1,5,3,"Q","w"],[2,2,3,"R","w"],[0,2,5,"B","w"],[1,4,3,"N","w"],[0,3,5,"K","b"],[2,1,3,"P","b"],[0,4,5,"N","b"]],[[2,3,5,"K","w"],[1,0,1,"Q","w"],[3,7,5,"R","w"],[2,3,3,"B","w"],[0,4,5,"K","b"],[1,1,1,"P","b"]],[[3,2,1,"K","w"],[2,3,3,"Q","w"],[0,2,5,"R","w"],[2,2,3,"B","w"],[3,5,3,"K","b"],[3,5,1,"N","b"]],[[1,2,3,"K","w"],[2,3,5,"Q","w"],[3,0,3,"K","b"],[0,1,1,"P","b"]]];
+const dayIdx=()=>Math.floor((Date.now()-Date.UTC(2026,0,1))/864e5);
+const dayStr=()=>new Date().toISOString().slice(0,10);
+function puzState(i){const m=new Map();for(const [x,y,z,t,sd] of PUZZLES[i])m.set(key(x,y,z),{t,s:sd});return {m,bd:newState().bd}}
+const pzs=()=>store.get('c3d-puz',{date:'',solved:false,first:false,streak:0,record:0,last:''});
+function snapshot(st,w,h){
+  const keep={st:ST,sel,legal,selB,slots,az0:az,el0:el,d0:dist,pr:ren.getPixelRatio()};
+  ST=st;sel=null;legal=[];selB=null;slots=[];sync();
+  ren.setPixelRatio(1);ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();az=.7;el=.4;dist=19.5;updCam();
+  ren.render(scene,cam);const url=ren.domElement.toDataURL('image/png');
+  ST=keep.st;sel=keep.sel;legal=keep.legal;selB=keep.selB;slots=keep.slots;sync();
+  ren.setPixelRatio(keep.pr);az=keep.az0;el=keep.el0;dist=keep.d0;fit();updCam();return url}
+let puzImg='';
+function buildHome(){
+  const n=dayIdx()+1,i=((dayIdx()%PUZZLES.length)+PUZZLES.length)%PUZZLES.length,z=pzs();
+  if(!puzImg){try{puzImg=snapshot(puzState(i),680,560)}catch(e){puzImg=''}}
+  const solvedToday=z.date==dayStr()&&z.solved;
+  const note=solvedToday?(z.first?'Bravo, trouvé du premier coup !':'Trouvé, mais pas du premier coup : la série repart demain.'):'Les Blancs jouent et font mat en un coup. Quel est le coup ?';
+  $('c-puz').innerHTML='<div class="hd"><h3>Puzzle du jour</h3><span class="pill">N° '+n+'</span></div><p class="tx">'+note+'</p><div class="pz">'+(puzImg?'<img alt="Position du puzzle" src="'+puzImg+'">':'')+'</div><button class="wbtn full pri" id="pz-go">'+(solvedToday?'Revoir le puzzle':'Résoudre le puzzle')+'</button>'+
+   '<div class="cfoot"><span><b>'+(z.streak?z.streak+' jour(s) de série':'Pas de série')+'</b> <small>· record '+z.record+'</small></span><button class="wbtn" id="pz-share">Partager</button></div>';
+  $('pz-go').onclick=()=>startPuzzle(i,n);
+  $('pz-share').onclick=async e=>{const t='Échecs à trois dimensions · Puzzle n°'+n+(solvedToday?(z.first?' ✓ du premier coup':' ✓'):' : mat en un coup')+' '+location.origin+location.pathname;
+    try{await navigator.clipboard.writeText(t);e.target.textContent='Copié'}catch(err){e.target.textContent='Copie impossible'}setTimeout(()=>e.target.textContent='Partager',1600)};
+  const rows=rankRows().slice(0,3);
+  $('c-rank').innerHTML='<div class="hd"><h3>Classement</h3><span class="pill">ELO LOCAL</span></div><div class="grow">'+rows.map((r,k)=>'<div class="mini"><span class="n">'+(k+1)+'</span><div class="nm">'+esc(r.n)+(r.me?' (toi)':'')+'</div><span class="e">'+r.e+'</span></div>').join('')+'</div><button class="wbtn full" id="rk-go">Voir le classement</button>';
+  $('rk-go').onclick=()=>setView('rank');
+  const gs=store.get('c3d-games',[]).slice(0,5);
+  $('c-games').innerHTML='<div class="hd"><h3>Tes parties</h3></div>'+(gs.length?'<div class="grow">'+gs.map(g=>'<div class="mini"><div class="nm">'+esc(g.txt)+'<small>'+esc(g.opp)+' · '+g.d+' · '+g.n+' coups</small></div>'+(g.delta!==null?'<span class="dl '+(g.delta>0?'up':g.delta<0?'dn':'eq')+'">'+(g.delta>0?'+':g.delta<0?'−':'±')+Math.abs(g.delta)+'</span>':'')+'</div>').join('')+'</div>':'<p class="tx grow">Joue une partie pour la retrouver ici. Il n’y a pas de compte : tes parties et ton ELO restent dans ce navigateur.</p>')+'<button class="wbtn full pri" id="gm-go" style="margin-top:12px">Jouer une partie</button>';
+  $('gm-go').onclick=()=>startMode(botOn()?botLvl:2)}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function logGame(res,delta){const g=store.get('c3d-games',[]);
+  const bot=botOn();const txt=bot?(res=='w'?'Victoire':res=='b'?'Défaite':'Nulle'):(res=='d'?'Nulle':(res=='w'?pname('w'):pname('b'))+' gagne');
+  const d=new Date();g.unshift({txt,opp:'contre '+pname('b'),d:String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),n:hist.length,delta:bot?delta:null});store.set('c3d-games',g.slice(0,20))}
+function startPuzzle(i,n){
+  puzzleMode=true;puzErr=0;clearTimeout(botT);thinking=false;
+  ST=puzState(i);turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];eloDone=true;deltas={w:null,b:null};
+  document.body.classList.add('puz');
+  $('puzbar').innerHTML='<b>Puzzle n°'+n+'</b>Les Blancs jouent et font mat en un coup. Trouve le coup.<br><button class="btn" id="pz-quit">Quitter le puzzle</button>';
+  $('pz-quit').onclick=()=>{init();paint()};
+  sync();ui('Mat en 1');renderHist();setView('play');paint()}
+function puzzleMove(m){
+  const n2=applyMove(ST,m),k=findK(n2,'b');
+  const mate=!!k&&attacked(n2,k,'w')&&legalAll(n2,'b').length==0;
+  sel=null;legal=[];selB=null;slots=[];
+  if(!mate){puzErr++;ui('Ce coup ne met pas mat. Réessaie.');paint();return}
+  ST=n2;sync();over=true;paint();
+  const z=pzs(),t=dayStr(),first=puzErr==0;
+  if(z.date!=t){const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    const streak=first?(z.last==y?z.streak+1:1):0;
+    store.set('c3d-puz',{date:t,solved:true,first,streak,record:Math.max(z.record,streak),last:first?t:z.last})}
+  ui(first?'Échec et mat ! Du premier coup.':'Échec et mat ! Trouvé après '+puzErr+' erreur(s).');renderHist()}
 function setView(v,quiet){
   document.body.dataset.view=v;
   document.querySelectorAll('#nav a.lk').forEach(a=>a.classList.toggle('on',a.dataset.v==v));
   heroMode=v=='home';
   const host=heroMode?$('disc'):stage;host.appendChild(ren.domElement);
   if(heroMode){az=.7}else{az=.7;el=.42;zoomed=false}
-  if(v=='rank')buildRank();
+  if(v=='rank')buildRank();if(v=='home')buildHome();
   fit();if(typeof paint==='function'&&typeof ST!=='undefined'&&ST)paint();
   if(!quiet){const h=v=='home'?'#/':v=='play'?'#/jouer':'#/classement';if(location.hash!==h)history.replaceState(null,'',h)}}
 function route(){const h=location.hash;setView(h.startsWith('#/jouer')?'play':h.startsWith('#/classement')?'rank':'home',true)}
