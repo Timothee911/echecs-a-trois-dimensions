@@ -1,6 +1,6 @@
 # Échecs à trois dimensions
 
-Jeu d'échecs à trois dimensions sur 5 étages (Raumschach 5×5×5), en three.js. Deux joueurs sur le même écran.
+Les échecs tridimensionnels façon *Star Trek*, en three.js : trois plateaux principaux 4×4 et quatre plateaux d'attaque 2×2 mobiles, répartis sur sept niveaux. Tu joues les Blancs contre un bot (trois niveaux) ou à deux, avec un ELO comme aux échecs classiques.
 
 ![Aperçu](apercu.png)
 
@@ -12,6 +12,7 @@ python3 -m http.server 8000
 
 Puis ouvrir http://localhost:8000
 
-## Pièces
-Pion, tour, cavalier, fou, licorne (diagonale à travers les 3 axes), dame, roi. Détection de l'échec, de l'échec et mat et du pat.
-Pas encore : prise en passant, roque.
+## Règles (version de fans simplifiée)
+- Pièces : roi, dame, tour, fou, cavalier, pion, avec des déplacements sur les trois dimensions.
+- Plateaux d'attaque : à ton tour, tu peux déplacer un plateau que tu contrôles (un niveau plus haut ou plus bas, ou de l'autre côté) au lieu de jouer une pièce.
+- Échec, échec et mat et pat détectés. Pas de roque ni de prise en passant.
