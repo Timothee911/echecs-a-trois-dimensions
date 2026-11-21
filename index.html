@@ -29,6 +29,7 @@ body{display:flex}
 .tab{flex:1;border:0;background:transparent;color:var(--mut);padding:8px 6px;border-radius:9px;font:600 13px inherit;cursor:pointer}
 .tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px #1b243016}
 .pane{display:none}.pane.on{display:block}
+.sel{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin-bottom:10px}.sel select{flex:1;border:1px solid var(--line);border-radius:11px;padding:9px 10px;font:600 13px inherit;color:var(--ink);background:#fff}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:11px;padding:10px 8px;font:600 13px inherit;cursor:pointer;transition:.15s}
 .btn:hover{background:var(--bg)}.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.pri:hover{background:var(--acc2)}.btn.dng{color:var(--bad)}
@@ -58,8 +59,9 @@ body{display:flex}
   <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>
   <div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
   <div class="pane on" id="game">
+    <label class="sel">Adversaire<select id="opp"><option value="1">Bot · Facile (800)</option><option value="2">Bot · Moyen (1200)</option><option value="3">Bot · Fort (1500)</option><option value="0">Deux joueurs</option></select></label>
     <div class="btns"><button class="btn pri" id="reset">Nouvelle partie</button><button class="btn" id="undo">Annuler le coup</button><button class="btn dng" id="resign">Abandonner</button><button class="btn" id="swap">Inverser les camps</button></div>
-    <p class="hint">Chaque partie termine avec un échec et mat, un pat ou un abandon, et modifie l'ELO des deux joueurs (calcul standard, K = 32). Les classements sont gardés dans ce navigateur. Clique sur un nom pour le changer.</p>
+    <p class="hint">Tu joues les Blancs, le bot joue les Noirs. Chaque partie se termine par un échec et mat, un pat ou un abandon, et modifie ton ELO selon le niveau du bot (calcul standard, K = 32). Ton classement est gardé dans ce navigateur.</p>
     <p class="hint"><a href="#" id="elo-reset" style="color:var(--mut)">Remettre les deux ELO à 1200</a></p>
   </div>
   <div class="pane" id="rules"></div>
@@ -265,26 +267,34 @@ if(location.search.includes('galerie')){
 // ---------- joueurs & ELO ----------
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let players=store.get('c3d-players',null)||{w:{name:'Joueur 1',elo:1200,g:0},b:{name:'Joueur 2',elo:1200,g:0}};
+const BOT={1:{n:'Facile',e:800,d:0,noise:150},2:{n:'Moyen',e:1200,d:1,noise:25},3:{n:'Fort',e:1500,d:2,noise:0}};
+let botLvl=+store.get('c3d-bot',2);if(!(botLvl in BOT)&&botLvl!==0)botLvl=2;
+const botOn=()=>botLvl>0;let thinking=false,botT=0;
 let eloDone=false,deltas={w:null,b:null};
 const $=id=>document.getElementById(id);
+const pname=sd=>sd=='b'&&botOn()?'Bot · '+BOT[botLvl].n:players[sd].name;
 function renderPlayers(){for(const sd of['w','b']){
-  const pl=players[sd];if($('nm-'+sd)!==document.activeElement)$('nm-'+sd).value=pl.name;
+  const isBot=sd=='b'&&botOn();const pl=isBot?{name:'Bot · '+BOT[botLvl].n,elo:BOT[botLvl].e}:players[sd];$('nm-'+sd).disabled=isBot;if($('nm-'+sd)!==document.activeElement)$('nm-'+sd).value=pl.name;
   $('el-'+sd).textContent=pl.elo;
   const d=$('dl-'+sd),v=deltas[sd];
   if(v===null){d.className='delta';d.textContent=''}else{d.className='delta '+(v>0?'up':v<0?'dn':'eq');d.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)}
   $('pc-'+sd).classList.toggle('act',turn==sd&&!over)}}
-for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
+for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{if(sd=='b'&&botOn())return;players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
 function finish(res){ // res : 'w' | 'b' | 'd'
   if(eloDone)return;eloDone=true;
-  const K=32,rw=players.w.elo,rb=players.b.elo,ew=1/(1+Math.pow(10,(rb-rw)/400));
+  const K=32,rw=players.w.elo,rb=botOn()?BOT[botLvl].e:players.b.elo,ew=1/(1+Math.pow(10,(rb-rw)/400));
   const sw=res=='w'?1:res=='d'?.5:0;
   const dw=Math.round(K*(sw-ew)),db=-dw;
-  players.w.elo+=dw;players.b.elo+=db;players.w.g++;players.b.g++;deltas={w:dw,b:db};
+  players.w.elo+=dw;players.w.g++;
+  if(botOn())deltas={w:dw,b:null};else{players.b.elo+=db;players.b.g++;deltas={w:dw,b:db}}
   store.set('c3d-players',players);renderPlayers()}
-function resign(){if(over)return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
-  over=true;sel=null;legal=[];finish(turn=='w'?'b':'w');ui(players[turn=='w'?'b':'w'].name+' gagne par abandon');paint()}
+function resign(){if(over||thinking)return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
+  over=true;sel=null;legal=[];finish(turn=='w'?'b':'w');ui(pname(turn=='w'?'b':'w')+' gagne par abandon');paint()}
 $('resign').onclick=resign;
-$('swap').onclick=()=>{if(hist.length&&!over&&!confirm('Inverser les camps en cours de partie ?'))return;const t=players.w;players.w=players.b;players.b=t;store.set('c3d-players',players);deltas={w:null,b:null};renderPlayers()};
+$('opp').value=String(botLvl);
+function applyMode(){$('swap').style.display=botOn()?'none':'';$('elo-reset').parentNode.style.display='';renderPlayers()}
+$('opp').onchange=e=>{botLvl=+e.target.value;store.set('c3d-bot',botLvl);init();paint();applyMode()};
+$('swap').onclick=()=>{if(botOn())return;if(hist.length&&!over&&!confirm('Inverser les camps en cours de partie ?'))return;const t=players.w;players.w=players.b;players.b=t;store.set('c3d-players',players);deltas={w:null,b:null};renderPlayers()};
 $('elo-reset').onclick=e=>{e.preventDefault();players.w.elo=players.b.elo=1200;players.w.g=players.b.g=0;deltas={w:null,b:null};store.set('c3d-players',players);renderPlayers()};
 // ---------- règles illustrées ----------
 const RULES=[
@@ -309,7 +319,7 @@ let board,turn,sel,legal,over,pieceObjs,hist=[];
 const key=(x,y,z)=>x+','+y+','+z;
 function init(){
   if(pieceObjs)pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
-  board=new Map();turn='w';sel=null;legal=[];over=false;hist=[];eloDone=false;deltas={w:null,b:null};
+  board=new Map();turn='w';sel=null;legal=[];over=false;hist=[];clearTimeout(botT);thinking=false;eloDone=false;deltas={w:null,b:null};
   const back0='RNKNR',back1='BUQUB';
   const put=(x,y,z,t,s)=>board.set(key(x,y,z),{t,s});
   for(let x=0;x<N;x++){
@@ -354,26 +364,50 @@ function legalMoves(b,x,y,z){const s=b.get(key(x,y,z)).s;return pseudo(b,x,y,z).
 function anyMove(b,s){for(const [k,p] of b)if(p.s==s){const [x,y,z]=k.split(',').map(Number);if(legalMoves(b,x,y,z).length)return true}return false}
 const sq=(c)=>'ABCDE'[c[2]]+'abcde'[c[0]]+(c[1]+1);
 function renderHist(){const o=document.getElementById('hist');o.innerHTML='';if(!hist.length)o.innerHTML='<div class="empty">Aucun coup joué pour l\u2019instant.</div>';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)});}
-function undo(){if(!hist.length||over)return;const h=hist.pop();board=h.before;turn=h.s;sel=null;legal=[];over=false;sync();ui();renderHist();paint()}
+function undo(){if(!hist.length||over||thinking)return;let h;do{h=hist.pop();board=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);sel=null;legal=[];sync();ui();renderHist();paint()}
 function ui(msg){$('turn').textContent=turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';renderPlayers()}
 function paint(){for(const m of cellMeshes){const {x,y,z,base}=m.userData;m.material.color.setHex(base);m.material.opacity=.86;
   if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xffc83d);m.material.opacity=.97}
   const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(board.get(key(x,y,z))?0xff5d5d:0x5ef08a);m.material.opacity=.95}}}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
-function click(e){if(over)return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
+function click(e){if(over||thinking||(botOn()&&turn=='b'))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
   const hits=ray.intersectObjects([...cellMeshes,...pieceObjs],true);if(!hits.length)return;
   let o=hits[0].object;let c;while(o){if(o.userData.cell){c=o.userData.cell;break}if(o.userData.base!==undefined){c=o.userData;break}o=o.parent}
   if(c)play(c.x,c.y,c.z)}
-function play(x,y,z){const p=board.get(key(x,y,z));
-  if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){const mover=board.get(key(...sel));const cap=board.get(key(x,y,z));hist.push({before:board,s:turn,txt:(mover.t=='P'?'':mover.t)+sq(sel)+(cap?'×':'→')+sq([x,y,z])});board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
+function commit(f,to){const [x,y,z]=to;sel=f;const mover=board.get(key(...sel));const cap=board.get(key(x,y,z));hist.push({before:board,s:turn,txt:(mover.t=='P'?'':mover.t)+sq(sel)+(cap?'×':'→')+sq([x,y,z])});board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
     const k=findK(board,turn),chk=attacked(board,k,turn=='w'?'b':'w'),has=anyMove(board,turn);
-    if(!has){over=true;finish(chk?(turn=='w'?'b':'w'):'d');ui(chk?'Échec et mat ! '+players[turn=='w'?'b':'w'].name+' gagne':'Pat : partie nulle')}else ui(chk?'Échec !':'');if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();return}
+    if(!has){over=true;finish(chk?(turn=='w'?'b':'w'):'d');ui(chk?'Échec et mat ! '+pname(turn=='w'?'b':'w')+' gagne':'Pat : partie nulle')}else ui(chk?'Échec !':'');if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();botNext();return}
+function play(x,y,z){const p=board.get(key(x,y,z));
+  if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){commit(sel,[x,y,z]);return}
   if(p&&p.s==turn){sel=[x,y,z];legal=legalMoves(board,x,y,z);ui(LN[p.t]+' — '+legal.length+' coup(s)')}else{sel=null;legal=[]}
   paint()}
+// ---------- bot ----------
+const VAL={P:100,N:320,B:330,U:450,R:500,Q:900,K:20000};
+const kx=k=>[k.charCodeAt(0)-48,k.charCodeAt(2)-48,k.charCodeAt(4)-48];
+function evalB(b){let sc=0;for(const [k,p] of b){const [x,y,z]=kx(k);let v=VAL[p.t];
+  if(p.t!='K'){v+=(8-Math.abs(x-2)-Math.abs(y-2)-Math.abs(z-2))*3}
+  if(p.t=='P'){v+=(p.s=='w'?y+z:8-y-z)*8}
+  sc+=p.s=='b'?v:-v}return sc}
+function allMoves(b,s){const out=[];for(const [k,p] of b)if(p.s==s){const [x,y,z]=kx(k);for(const t of pseudo(b,x,y,z)){const c=b.get(key(t[0],t[1],t[2]));out.push([[x,y,z],t,c?VAL[c.t]*10-VAL[p.t]:0])}}out.sort((a,c)=>c[2]-a[2]);return out}
+function search(b,s,d,al,be){
+  if(d<0)return (s=='b'?1:-1)*evalB(b);
+  const ms=allMoves(b,s);let best=-1e9;
+  for(const m of ms){const c=b.get(key(m[1][0],m[1][1],m[1][2]));if(c&&c.t=='K')return 1e6+d;
+    const v=-search(apply(b,m[0],m[1]),s=='w'?'b':'w',d-1,-be,-al);
+    if(v>best)best=v;if(v>al)al=v;if(al>=be)break}
+  return ms.length?best:0}
+function botPick(){const cfg=BOT[botLvl];let best=null,bs=-1e9;const ms=[];
+  for(const [k,p] of board)if(p.s=='b'){const [x,y,z]=kx(k);for(const t of legalMoves(board,x,y,z)){const c=board.get(key(t[0],t[1],t[2]));ms.push([[x,y,z],t,c?VAL[c.t]*10:0])}}
+  ms.sort((a,c)=>c[2]-a[2]);
+  for(const m of ms){const v=-search(apply(board,m[0],m[1]),'w',cfg.d-1,-1e9,1e9)+Math.random()*cfg.noise;if(v>bs){bs=v;best=m}}
+  return best}
+function botNext(){if(!botOn()||over||turn!='b')return;thinking=true;const pre=$('msg').textContent;ui((pre?pre+' · ':'')+'Le bot réfléchit…');
+  clearTimeout(botT);botT=setTimeout(()=>{const m=botPick();thinking=false;if(over||!m)return;commit(m[0],m[1])},380)}
+window.__bot={pick:()=>botPick()};
 document.getElementById('undo').onclick=undo;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>{init();paint()};
-window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
-buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
+window.game={moves:()=>legal.map(t=>t.slice()),play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
+applyMode();buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 </script></body></html>
