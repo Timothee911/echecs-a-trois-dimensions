@@ -2,12 +2,17 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Échecs à trois dimensions</title>
 <style>
-:root{--bg:#f3f6fa;--ink:#1b2430;--mut:#667385;--card:#fff;--line:#e2e8f0;--acc:#1f7a8c;--acc2:#16606f;--gold:#c8962b;--bad:#d64545}
+:root{--bg:#f3f6fa;--ink:#1b2430;--mut:#667385;--card:#fff;--line:#e2e8f0;--acc:#1f7a8c;--acc2:#16606f;--accfg:#fff;--gold:#c8962b;--bad:#d64545;--glass:#ffffffd9;--st1:#fff;--st2:#eef3f8;--disc1:#ffffff;--disc2:#e3ebf3;--nav:#ffffffcc}
+:root[data-theme=dark]{--bg:#0f1311;--ink:#e9efe9;--mut:#9aa8a0;--card:#151a18;--line:#242d28;--acc:#74c9a5;--acc2:#8ad8b6;--accfg:#0d1a14;--glass:#151a18d9;--st1:#1a211e;--st2:#0f1311;--disc1:#232c28;--disc2:#121715;--nav:#0f1311cc}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
-body{display:flex}
-#side{width:352px;flex:none;background:#fff;border-right:1px solid var(--line);box-shadow:4px 0 24px #1b243010;display:flex;flex-direction:column;gap:12px;padding:18px;overflow-y:auto;z-index:2}
-#stage{flex:1;position:relative;min-width:0;background:radial-gradient(ellipse at 50% 40%,#fff 0%,#eef3f8 70%)}
+html,body{margin:0;height:100%;transition:background .2s,color .2s;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+#views{flex:1;min-height:0;display:flex;position:relative}
+.view{display:none;flex:1;min-width:0;min-height:0}
+body[data-view=play] #play-view{display:flex}
+body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;overflow-y:auto}
+#side{width:352px;flex:none;background:var(--card);border-right:1px solid var(--line);box-shadow:4px 0 24px #1b243010;display:flex;flex-direction:column;gap:12px;padding:18px;overflow-y:auto;z-index:2}
+#stage{flex:1;position:relative;min-width:0;background:radial-gradient(ellipse at 50% 40%,var(--st1) 0%,var(--st2) 70%)}
 #stage canvas{display:block;width:100%;height:100%}
 .brand{display:flex;align-items:center;gap:10px}
 .brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1f7a8c,#134b57);display:grid;place-items:center;color:#fff;font-size:22px;box-shadow:0 4px 12px #1f7a8c55}
@@ -27,12 +32,12 @@ body{display:flex}
 #msg{color:var(--acc2);font-weight:600;margin-left:auto;text-align:right;font-size:13px}
 #tabs{display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px}
 .tab{flex:1;border:0;background:transparent;color:var(--mut);padding:8px 6px;border-radius:9px;font:600 13px inherit;cursor:pointer}
-.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px #1b243016}
+.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px #1b243016}
 .pane{display:none}.pane.on{display:block}
-.sel{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin-bottom:10px}.sel select{flex:1;border:1px solid var(--line);border-radius:11px;padding:9px 10px;font:600 13px inherit;color:var(--ink);background:#fff}
+.sel{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin-bottom:10px}.sel select{flex:1;border:1px solid var(--line);border-radius:11px;padding:9px 10px;font:600 13px inherit;color:var(--ink);background:var(--card)}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:11px;padding:10px 8px;font:600 13px inherit;cursor:pointer;transition:.15s}
-.btn:hover{background:var(--bg)}.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.pri:hover{background:var(--acc2)}.btn.dng{color:var(--bad)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:10px 8px;font:600 13px inherit;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--bg)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--accfg)}.btn.pri:hover{background:var(--acc2)}.btn.dng{color:var(--bad)}
 .hint{font-size:12px;color:var(--mut);margin:10px 2px 0;line-height:1.5}
 #hist{margin:0;padding:0;list-style:none;font:13px ui-monospace,Menlo,monospace}
 #hist li{display:flex;gap:8px;padding:6px 8px;border-radius:8px}#hist li:nth-child(odd){background:var(--bg)}#hist .n{color:var(--mut);width:2em}
@@ -42,18 +47,83 @@ body{display:flex}
 .rhero h3{margin:0 0 6px;font-size:16px}.rhero p{margin:0;font-size:13px;line-height:1.5;opacity:.92}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chip{font-size:11px;font-weight:600;background:#ffffff26;border-radius:99px;padding:3px 9px}
 .rgrid{display:grid;gap:10px}
-.rc{display:flex;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;align-items:center}
+.rc{display:flex;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--card);align-items:center}
 .rc .th{width:64px;height:80px;flex:none;border-radius:11px;background:linear-gradient(160deg,#2c3a4b,#141b24);display:grid;place-items:center;overflow:hidden}
 .rc .th img{width:100%;height:100%;object-fit:contain}
 .rc h4{margin:0;font-size:15px}.rc p{margin:3px 0 6px;font-size:12.5px;color:var(--mut);line-height:1.45}
 .tg{display:flex;flex-wrap:wrap;gap:5px}.tg i{font-style:normal;font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 8px;background:#e6f2f5;color:var(--acc2)}
 .tg i.g{background:#fbf1d9;color:#8a6410}.tg i.r{background:#fde8e8;color:#b53a3a}
 .rgoal{margin-top:12px;border:1px dashed #c9d3df;border-radius:14px;padding:12px;font-size:13px;line-height:1.5}
-#legend{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--mut);background:#ffffffd9;border:1px solid var(--line);border-radius:99px;padding:6px 14px;white-space:nowrap;backdrop-filter:blur(6px)}
-@media(max-width:860px){body{flex-direction:column}#stage{order:0;flex:1 1 55%;min-height:0}#side{order:1;width:100%;flex:0 0 auto;max-height:46vh;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 24px #1b243010}#legend{display:none}}
+#legend{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--mut);background:var(--glass);border:1px solid var(--line);border-radius:99px;padding:6px 14px;white-space:nowrap;backdrop-filter:blur(6px)}
+@media(max-width:860px){#play-view{flex-direction:column}#stage{order:0;flex:1 1 55%;min-height:0}#side{order:1;width:100%;flex:0 0 auto;max-height:46vh;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 24px #1b243010}#legend{display:none}}
+
+#nav{height:56px;flex:none;display:flex;align-items:center;gap:6px;padding:0 max(16px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);background:var(--nav);backdrop-filter:blur(10px);z-index:5}
+#nav .logo2{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.01em;margin-right:12px;color:var(--ink);text-decoration:none}
+#nav .logo2 i{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#1f7a8c,#134b57);display:grid;place-items:center;color:#fff;font-style:normal;font-size:17px}
+#nav a.lk{padding:7px 12px;border-radius:9px;color:var(--mut);font:600 14px inherit;text-decoration:none}
+#nav a.lk:hover{color:var(--ink)}#nav a.lk.on{background:var(--bg);color:var(--ink)}
+#nav .sp{flex:1}
+.ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.ibtn svg{width:18px;height:18px}.ibtn .moon{display:none}:root[data-theme=dark] .ibtn .moon{display:block}:root[data-theme=dark] .ibtn .sun{display:none}
+.cta{background:var(--acc);color:var(--accfg);border:0;border-radius:10px;padding:9px 16px;font:700 14px inherit;cursor:pointer;margin-left:6px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:48px 0 40px}
+.eyebrow{font:600 12px ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--acc);margin-bottom:18px}
+.hero h1{font-size:clamp(40px,6vw,76px);line-height:.98;letter-spacing:-.035em;margin:0 0 22px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--acc)}
+.hero p{font-size:17px;line-height:1.55;color:var(--mut);max-width:520px;margin:0 0 28px}
+.hbtns{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.hbtn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:14px 20px;font:700 15px inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.hbtn.pri{background:var(--acc);border-color:var(--acc);color:var(--accfg)}
+.hbtn.txt{border-color:transparent;background:transparent;color:var(--ink)}
+.hbtn svg{width:16px;height:16px}
+#disc{width:min(480px,90%);aspect-ratio:1;border-radius:50%;margin:0 auto;position:relative;overflow:hidden;background:radial-gradient(circle at 35% 30%,var(--disc1),var(--disc2));box-shadow:0 30px 80px #0006,inset 0 0 0 1px var(--line),inset 0 0 0 14px #ffffff0d}
+:root:not([data-theme=dark]) #disc{box-shadow:0 30px 70px #1b243026,inset 0 0 0 1px var(--line)}
+#disc canvas{position:absolute;inset:0;width:100%;height:100%}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 0 60px}
+.feat{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:22px}
+.feat b{display:block;font-size:17px;margin:10px 0 6px}.feat span{color:var(--mut);font-size:14px;line-height:1.55}
+.feat .ic{width:40px;height:40px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-size:20px}
+.rk{max-width:640px;margin:0 auto;padding:40px 24px}
+.rk h2{font-size:34px;letter-spacing:-.03em;margin:0 0 6px}.rk>p{color:var(--mut);margin:0 0 22px}
+.rrow{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+.rrow.me{border-color:var(--acc);box-shadow:0 0 0 3px #1f7a8c22}
+.rrow .n{width:26px;font:700 15px ui-monospace,Menlo,monospace;color:var(--mut)}
+.rrow .nm{flex:1;font-weight:700}.rrow .nm small{display:block;color:var(--mut);font-weight:500;font-size:12px}
+.rrow .e{font-size:22px;font-weight:800;letter-spacing:-.02em}
+@media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
 </style></head><body>
-<aside id="side">
-  <div class="brand"><div class="logo">♞</div><div><h1>Échecs à trois dimensions</h1><small>Star Trek · 3 plateaux + 4 plateaux d’attaque</small></div></div>
+<header id="nav">
+  <a class="logo2" href="#/"><i>♞</i><span>Échecs 3D</span></a>
+  <a class="lk" data-v="home" href="#/">Accueil</a><a class="lk" data-v="play" href="#/jouer">Jouer</a><a class="lk" data-v="rank" href="#/classement">Classement</a>
+  <span class="sp"></span>
+  <button class="ibtn" id="theme" aria-label="Changer de thème"><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  <button class="cta" id="cta">Jouer</button>
+</header>
+<div id="views">
+<section id="home-view" class="view"><div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">JEU DE STRATÉGIE · 2 JOUEURS</div>
+      <h1>Trois plateaux.<br>Sept niveaux.<br><em>Un seul roi.</em></h1>
+      <p>Les échecs tridimensionnels de Star Trek : trois plateaux 4×4, quatre plateaux d’attaque que l’on déplace, et des pièces qui changent de niveau. Mets le roi adverse en échec et mat.</p>
+      <div class="hbtns">
+        <button class="hbtn pri" id="h-bot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Jouer contre le bot</button>
+        <button class="hbtn" id="h-two"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5"/></svg>Local à deux</button>
+        <button class="hbtn txt" id="h-rules">Voir les règles</button>
+      </div>
+    </div>
+    <div id="disc"></div>
+  </div>
+  <div class="feats">
+    <div class="feat"><div class="ic">▦</div><b>Plateaux d’attaque mobiles</b><span>Au lieu de jouer une pièce, déplace un plateau 2×2 d’un niveau ou de l’autre côté, avec ses pièces.</span></div>
+    <div class="feat"><div class="ic">♞</div><b>Un bot à trois niveaux</b><span>Facile, Moyen ou Fort. Il joue les Noirs et sait lui aussi déplacer ses plateaux d’attaque.</span></div>
+    <div class="feat"><div class="ic">★</div><b>Classement ELO</b><span>Ton ELO évolue à chaque partie, comme aux échecs classiques, et reste gardé dans ton navigateur.</span></div>
+  </div>
+</div></section>
+<section id="rank-view" class="view"><div class="rk"><h2>Classement</h2><p>Classement local : ton ELO face aux bots.</p><div id="rank-list"></div></div></section>
+<div id="play-view" class="view"><aside id="side">
+  
   <div class="pcard" id="pc-b"><div class="av b">♚</div><div class="pinfo"><input class="pname" id="nm-b" maxlength="16" aria-label="Nom des Noirs"><div class="psub">Noirs <span class="delta" id="dl-b"></span></div></div><div class="elo"><b id="el-b">1200</b><span>ELO</span></div></div>
   <div class="pcard" id="pc-w"><div class="av w">♔</div><div class="pinfo"><input class="pname" id="nm-w" maxlength="16" aria-label="Nom des Blancs"><div class="psub">Blancs <span class="delta" id="dl-w"></span></div></div><div class="elo"><b id="el-w">1200</b><span>ELO</span></div></div>
   <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>
@@ -67,15 +137,15 @@ body{display:flex}
   <div class="pane" id="rules"></div>
   <div class="pane" id="histp"><ol id="hist"></ol></div>
 </aside>
-<main id="stage"><div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Niveaux 0 (bas) → 6 (haut)</div></main>
+<main id="stage"><div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Niveaux 0 (bas) → 6 (haut)</div></main></div></div>
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 const N=4, GAP=2.0, S=1.0;
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf1f5f9);
+const scene=new THREE.Scene(); 
 const stage=document.getElementById('stage');
 const cam=new THREE.PerspectiveCamera(45,1,.1,100);
-const ren=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+const ren=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});ren.setClearColor(0x000000,0);
 ren.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(ren.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0x9aa9b8,1.25));
 const dl=new THREE.DirectionalLight(0xffffff,1.3);dl.position.set(6,12,8);scene.add(dl);
@@ -84,11 +154,13 @@ let az=0.7,el=0.42,dist=20,zoomed=false;const target=new THREE.Vector3(0,3*GAP+.
 function updCam(){cam.position.set(target.x+dist*Math.cos(el)*Math.sin(az),target.y+dist*Math.sin(el),target.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(target);}
 updCam();
 let drag=null,moved=0;
-ren.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=0});
+ren.domElement.addEventListener('pointerdown',e=>{if(heroMode)return;drag={x:e.clientX,y:e.clientY};moved=0});
 addEventListener('pointerup',e=>{if(drag&&moved<5)click(e);drag=null});
 addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);az-=dx*.006;el=Math.max(-.2,Math.min(1.4,el+dy*.005));drag={x:e.clientX,y:e.clientY};updCam()});
 ren.domElement.addEventListener('wheel',e=>{zoomed=true;dist=Math.max(8,Math.min(34,dist+e.deltaY*.012));updCam()},{passive:true});
-function fit(){const w=stage.clientWidth||innerWidth,h=stage.clientHeight||innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();ren.setSize(w,h);
+let heroMode=false;
+function fit(){const host=ren.domElement.parentElement||stage;const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();ren.setSize(w,h);
+  if(heroMode){dist=23;el=.36;updCam();return}
   if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(23,14/Math.min(cam.aspect,1.6)*1.05);updCam()}}
 addEventListener('resize',fit);fit();
 // ---------- plateaux : 3 principaux 4×4 + 4 plateaux d'attaque 2×2 ----------
@@ -130,7 +202,7 @@ function buildBoards(){
     const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,H+.5,12),new THREE.MeshStandardMaterial({color:0x5aa9e6,emissive:0x2a8fd0,emissiveIntensity:.5,transparent:true,opacity:.45}));
     post.position.set(px,H/2,pz);boardGroup.add(post);
     for(const yy of[-.25,H+.25]){const cap=new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),goldMat);cap.position.set(px,yy,pz);boardGroup.add(cap)}}
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(7.4,64),new THREE.MeshBasicMaterial({color:0xf9fbfd}));
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(7.4,64),new THREE.MeshBasicMaterial({color:document.documentElement.dataset.theme=='dark'?0x1b2320:0xf9fbfd}));
   floor.rotation.x=-Math.PI/2;floor.position.y=-.45;boardGroup.add(floor);
   const rg=new THREE.Mesh(new THREE.RingGeometry(5.5,5.56,96),new THREE.MeshBasicMaterial({color:0x3aa0d8,transparent:true,opacity:.7,side:THREE.DoubleSide}));
   rg.rotation.x=-Math.PI/2;rg.position.y=-.44;boardGroup.add(rg)}
@@ -381,7 +453,7 @@ function paint(){
     if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xffc83d);m.material.opacity=.97}
     const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(ST.m.get(key(x,y,z))?0xff5d5d:0x5ef08a);m.material.opacity=.95}}}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
-function click(e){if(over||thinking||(botOn()&&turn=='b'))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
+function click(e){if(document.body.dataset.view!='play')return;if(over||thinking||(botOn()&&turn=='b'))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
   const hits=ray.intersectObjects([...ghostMeshes,...cellMeshes,...pieceObjs,...frameMeshes],true);
   for(const h of hits){let o=h.object;while(o){const u=o.userData;
     if(u.slot){commit({k:'b',id:selB,x0:u.slot.x0,z:u.slot.z});return}
@@ -433,5 +505,31 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 document.getElementById('reset').onclick=()=>{init();paint()};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,z:slots[i].z}),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 applyMode();buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
-(function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
+
+// ---------- navigation, thème, accueil, classement ----------
+function setTheme(t){document.documentElement.dataset.theme=t;store.set('c3d-theme',t);if(typeof ST!=='undefined'&&ST){buildBoards();paint()}}
+$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark');
+function buildRank(){const me=players.w,rows=[{n:me.name,e:me.elo,sub:me.g+' partie(s) jouée(s)',me:true},{n:'Bot · Fort',e:BOT[3].e,sub:'Niveau fixe'},{n:'Bot · Moyen',e:BOT[2].e,sub:'Niveau fixe'},{n:'Bot · Facile',e:BOT[1].e,sub:'Niveau fixe'}];
+  rows.sort((a,b)=>b.e-a.e);
+  $('rank-list').innerHTML=rows.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><span class="n">'+(i+1)+'</span><div class="nm">'+r.n.replace(/</g,'&lt;')+(r.me?' (toi)':'')+'<small>'+r.sub+'</small></div><span class="e">'+r.e+'</span></div>').join('')}
+function setView(v,quiet){
+  document.body.dataset.view=v;
+  document.querySelectorAll('#nav a.lk').forEach(a=>a.classList.toggle('on',a.dataset.v==v));
+  heroMode=v=='home';
+  const host=heroMode?$('disc'):stage;host.appendChild(ren.domElement);
+  if(heroMode){az=.7}else{az=.7;el=.42;zoomed=false}
+  if(v=='rank')buildRank();
+  fit();if(typeof paint==='function'&&typeof ST!=='undefined'&&ST)paint();
+  if(!quiet){const h=v=='home'?'#/':v=='play'?'#/jouer':'#/classement';if(location.hash!==h)history.replaceState(null,'',h)}}
+function route(){const h=location.hash;setView(h.startsWith('#/jouer')?'play':h.startsWith('#/classement')?'rank':'home',true)}
+window.addEventListener('hashchange',route);
+document.querySelectorAll('#nav a.lk').forEach(a=>a.onclick=e=>{e.preventDefault();setView(a.dataset.v)});
+$('cta').onclick=()=>setView('play');
+function startMode(lvl){if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
+$('h-bot').onclick=()=>startMode(botOn()?botLvl:2);
+$('h-two').onclick=()=>startMode(0);
+$('h-rules').onclick=()=>{setView('play');document.querySelector('[data-t=rules]').click()};
+setTheme(store.get('c3d-theme','light'));
+if(location.search.includes('galerie')){setView('play',true)}else route();
+(function loop(){requestAnimationFrame(loop);if(heroMode){az+=.0035;updCam()}ren.render(scene,cam)})();
 </script></body></html>
