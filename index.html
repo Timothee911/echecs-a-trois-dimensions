@@ -6,10 +6,31 @@ html,body{margin:0;height:100%;background:#0d1117;color:#e6edf3;font-family:syst
 #ui{position:fixed;top:12px;left:12px;background:#161b22cc;border:1px solid #30363d;border-radius:10px;padding:10px 14px;max-width:260px;font-size:14px}
 #ui h1{font-size:16px;margin:0 0 6px}#turn{font-weight:700}#msg{color:#f0b429;min-height:18px;margin-top:4px}
 button{margin-top:8px;background:#238636;color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+#tabs{display:flex;gap:4px;margin:8px 0 6px}
+.tab{margin:0;background:#21262d;color:#8b949e;padding:5px 10px;border-radius:6px 6px 0 0}
+.tab.on{background:#30363d;color:#fff}
+.pane{display:none;max-height:62vh;overflow:auto}.pane.on{display:block}
+#rules{font-size:13px;line-height:1.4}#rules b{color:#f0b429}#rules p{margin:5px 0}
+#hist{margin:0;padding-left:0;list-style:none;font-size:13px;font-family:ui-monospace,monospace}
+#hist li{padding:2px 0;border-bottom:1px solid #21262d}#hist .n{color:#8b949e;display:inline-block;width:2.2em}
+#undo{background:#6e7681}
 #legend{position:fixed;bottom:12px;left:12px;font-size:12px;color:#8b949e}
 </style></head><body>
 <div id="ui"><h1>Échecs 3D · Raumschach 5×5×5</h1><div>Trait : <span id="turn"></span></div><div id="msg"></div>
-<button id="reset">Nouvelle partie</button></div>
+<div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
+<div class="pane on" id="game"><button id="reset">Nouvelle partie</button> <button id="undo">Annuler le coup</button></div>
+<div class="pane" id="rules">
+<p><b>Repères</b> : colonnes a–e, rangées 1–5, étages A (bas) à E (haut). Case = étage + colonne + rangée, par ex. <b>Bb2</b>.</p>
+<p><b>Tour</b> : en ligne droite sur un des 3 axes (avant/arrière, gauche/droite, haut/bas).</p>
+<p><b>Fou</b> : en diagonale dans un plan (2 axes changent, le 3e reste fixe).</p>
+<p><b>Licorne</b> : en diagonale à travers les 3 axes à la fois, d'un étage à l'autre.</p>
+<p><b>Dame</b> : tour + fou + licorne.</p>
+<p><b>Roi</b> : une case dans n'importe quelle direction (26 voisines).</p>
+<p><b>Cavalier</b> : 2 cases sur un axe puis 1 sur un autre. Il saute par-dessus les pièces.</p>
+<p><b>Pion</b> : avance d'une case vers l'avant (rangée) ou vers le haut/bas (étage, selon le camp). Il prend en diagonale vers l'avant. Il devient dame sur la dernière rangée ou le dernier étage.</p>
+<p><b>But</b> : mettre le roi adverse en échec et mat. Pas de roque ni de prise en passant.</p>
+</div>
+<div class="pane" id="histp"><ol id="hist"></ol></div></div>
 <div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Étages A (bas) → E (haut)</div>
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
@@ -64,18 +85,18 @@ function makePiece(t,side){
   g.userData.t=t;g.userData.side=side;return g;
 }
 // game state
-let board,turn,sel,legal,over,pieceObjs;
+let board,turn,sel,legal,over,pieceObjs,hist=[];
 const key=(x,y,z)=>x+','+y+','+z;
 function init(){
   if(pieceObjs)pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
-  board=new Map();turn='w';sel=null;legal=[];over=false;
+  board=new Map();turn='w';sel=null;legal=[];over=false;hist=[];
   const back0='RNKNR',back1='BUQUB';
   const put=(x,y,z,t,s)=>board.set(key(x,y,z),{t,s});
   for(let x=0;x<N;x++){
     put(x,0,0,back0[x],'w');put(x,0,1,back1[x],'w');put(x,1,0,'P','w');put(x,1,1,'P','w');
     put(x,4,4,back0[x],'b');put(x,4,3,back1[x],'b');put(x,3,4,'P','b');put(x,3,3,'P','b');
   }
-  sync();ui();
+  sync();ui();renderHist();
 }
 function sync(){pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
   for(const [k,p] of board){const [x,y,z]=k.split(',').map(Number);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;o.userData.cell={x,y,z};scene.add(o);pieceObjs.push(o)}}
@@ -111,6 +132,9 @@ function apply(b,from,to){const nb=new Map(b);const p=nb.get(key(...from));nb.de
   let q={...p};if(p.t=='P'&&((p.s=='w'&&(to[1]==4||to[2]==4))||(p.s=='b'&&(to[1]==0||to[2]==0))))q.t='Q';nb.set(key(...to),q);return nb}
 function legalMoves(b,x,y,z){const s=b.get(key(x,y,z)).s;return pseudo(b,x,y,z).filter(t=>{const nb=apply(b,[x,y,z],t);const k=findK(nb,s);return k&&!attacked(nb,k,s=='w'?'b':'w')})}
 function anyMove(b,s){for(const [k,p] of b)if(p.s==s){const [x,y,z]=k.split(',').map(Number);if(legalMoves(b,x,y,z).length)return true}return false}
+const sq=(c)=>'ABCDE'[c[2]]+'abcde'[c[0]]+(c[1]+1);
+function renderHist(){const o=document.getElementById('hist');o.innerHTML='';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)});o.parentNode.scrollTop=1e9}
+function undo(){if(!hist.length)return;const h=hist.pop();board=h.before;turn=h.s;sel=null;legal=[];over=false;sync();ui();renderHist();paint()}
 function ui(msg){document.getElementById('turn').textContent=turn=='w'?'Blancs':'Noirs';document.getElementById('msg').textContent=msg||''}
 function paint(){for(const m of cellMeshes){const {x,y,z,base}=m.userData;m.material.color.setHex(base);m.material.opacity=.62;
   if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xf0b429);m.material.opacity=.95}
@@ -121,11 +145,13 @@ function click(e){if(over)return;const r=ren.domElement.getBoundingClientRect();
   let o=hits[0].object;let c;while(o){if(o.userData.cell){c=o.userData.cell;break}if(o.userData.base!==undefined){c=o.userData;break}o=o.parent}
   if(c)play(c.x,c.y,c.z)}
 function play(x,y,z){const p=board.get(key(x,y,z));
-  if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
+  if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){const mover=board.get(key(...sel));const cap=board.get(key(x,y,z));hist.push({before:board,s:turn,txt:(mover.t=='P'?'':mover.t)+sq(sel)+(cap?'×':'→')+sq([x,y,z])});board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
     const k=findK(board,turn),chk=attacked(board,k,turn=='w'?'b':'w'),has=anyMove(board,turn);
-    if(!has){over=true;ui(chk?'Échec et mat ! '+(turn=='w'?'Les Noirs':'Les Blancs')+' gagnent.':'Pat — partie nulle.')}else ui(chk?'Échec !':'');paint();return}
+    if(!has){over=true;ui(chk?'Échec et mat ! '+(turn=='w'?'Les Noirs':'Les Blancs')+' gagnent.':'Pat — partie nulle.')}else ui(chk?'Échec !':'');if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();return}
   if(p&&p.s==turn){sel=[x,y,z];legal=legalMoves(board,x,y,z);ui(LN[p.t]+' — '+legal.length+' coup(s)')}else{sel=null;legal=[]}
   paint()}
+document.getElementById('undo').onclick=undo;
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>{init();paint()};
 window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()}};
 init();paint();
