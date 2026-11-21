@@ -148,6 +148,21 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view{display:block;ov
 #pz-board{height:330px;position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 40% 30%,var(--disc1),var(--disc2));margin-bottom:10px;touch-action:none}
 #pz-board canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .pzm{min-height:38px;margin:0 0 10px;font-size:13.5px;font-weight:600;color:var(--acc2);text-align:center;line-height:1.4}
+#pz-board.bad{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.pzfx{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2;overflow:hidden}
+.pzfx.good{background:radial-gradient(circle,#22b36b2e,transparent 70%);animation:fade 2.9s forwards}
+.pzfx.bad{background:radial-gradient(circle,#d6454530,transparent 70%);animation:fade 1.3s forwards}
+.pzfx .ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;font:800 54px system-ui,sans-serif;color:#fff;animation:pop .6s cubic-bezier(.2,1.6,.4,1) both}
+.pzfx.good .ring{background:#22b36b;box-shadow:0 0 0 10px #22b36b33,0 12px 30px #22b36b66}
+.pzfx.bad .ring{background:var(--bad);box-shadow:0 0 0 10px #d6454533,0 12px 30px #d6454566}
+.pzfx .lbl{position:absolute;top:calc(50% + 62px);font:800 15px inherit;letter-spacing:.02em;padding:5px 14px;border-radius:99px;background:var(--card);box-shadow:0 6px 18px #1b243022;animation:pop .6s .12s cubic-bezier(.2,1.6,.4,1) both}
+.pzfx.good .lbl{color:#18864b}.pzfx.bad .lbl{color:var(--bad)}
+.pzfx .cf{position:absolute;left:50%;top:50%;width:8px;height:13px;border-radius:2px;animation:fly 1.4s ease-out both}
+@keyframes pop{from{transform:scale(0) rotate(-25deg);opacity:0}}
+@keyframes fade{0%,70%{opacity:1}100%{opacity:0}}
+@keyframes fly{from{transform:translate(-50%,-50%) scale(.4)}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.pzm.ok{color:#18864b}.pzm.ko{color:var(--bad)}
 @media(max-width:1000px){.cards{grid-template-columns:1fr}}
 @media(max-width:520px){#cta{display:none}#nav .logo2 span{display:none}}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:28px}.feats{grid-template-columns:1fr}#nav a.lk[data-v=rank]{display:none}}
@@ -677,17 +692,23 @@ function buildHome(){
 function logGame(res,delta){const g=store.get('c3d-games',[]);
   const bot=botOn();const txt=bot?(res=='w'?'Victoire':res=='b'?'Défaite':'Nulle'):(res=='d'?'Nulle':(res=='w'?pname('w'):pname('b'))+' gagne');
   const d=new Date();g.unshift({txt,opp:'contre '+pname('b'),d:String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),n:hist.length,delta:bot?delta:null});store.set('c3d-games',g.slice(0,20))}
+function puzFx(ok){const h=$('pz-board');if(!h)return;h.classList.remove('bad');void h.offsetWidth;if(!ok)h.classList.add('bad');
+  h.querySelectorAll('.pzfx').forEach(e=>e.remove());const d=document.createElement('div');d.className='pzfx '+(ok?'good':'bad');
+  const C=['#22b36b','#e0679c','#f3c73f','#1f7a8c','#7aa7ff'];
+  d.innerHTML='<div class="ring">'+(ok?'✓':'✗')+'</div><div class="lbl">'+(ok?'Réussi !':'Raté, réessaie')+'</div>'+(ok?Array.from({length:40},(_,i)=>{const a=Math.random()*6.283,r=80+Math.random()*130;return '<i class="cf" style="--dx:'+(Math.cos(a)*r).toFixed(0)+'px;--dy:'+(Math.sin(a)*r-30).toFixed(0)+'px;--r:'+(Math.random()*720|0)+'deg;background:'+C[i%5]+';animation-delay:'+(Math.random()*.2).toFixed(2)+'s"></i>'}).join(''):'');
+  h.appendChild(d);setTimeout(()=>d.remove(),ok?2900:1300);
+  const m=$('pz-msg');if(m){m.classList.remove('ok','ko');m.classList.add(ok?'ok':'ko');if(!ok)setTimeout(()=>m.classList.remove('ko'),1600)}}
 function puzzleMove(m){
   const n2=applyMove(ST,m),k=findK(n2,'b');
   const mate=!!k&&attacked(n2,k,'w')&&legalAll(n2,'b').length==0;
   sel=null;legal=[];selB=null;slots=[];
-  if(!mate){puzErr++;ui('Ce coup ne met pas mat. Réessaie.');paint();return}
+  if(!mate){puzErr++;ui('Ce coup ne met pas mat. Réessaie.');paint();puzFx(false);return}
   ST=n2;sync();over=true;paint();
   const z=pzs(),t=dayStr(),first=puzErr==0;
   if(z.date!=t){const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
     const streak=first?(z.last==y?z.streak+1:1):0;
     store.set('c3d-puz',{date:t,solved:true,first,streak,record:Math.max(z.record,streak),last:first?t:z.last})}
-  ui(first?'Échec et mat ! Du premier coup.':'Échec et mat ! Trouvé après '+puzErr+' erreur(s).');renderHist();buildHome()}
+  ui(first?'Échec et mat ! Du premier coup.':'Échec et mat ! Trouvé après '+puzErr+' erreur(s).');renderHist();buildHome();puzFx(true)}
 function capture(){return {ST,turn,hist:hist.slice(),over,eloDone,deltas:{...deltas}}}
 function restore(c){ST=c.ST;turn=c.turn;hist=c.hist;over=c.over;eloDone=c.eloDone;deltas=c.deltas;sel=null;legal=[];selB=null;slots=[];puzzleMode=false;puzHome=false;sync();ui();renderHist();paint();botNext()}
 function setView(v,quiet){
