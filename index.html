@@ -214,15 +214,15 @@ const ivMat=chrome(0xffffff,180);
 const nkMat=chrome(0x3a404a,120);
 function mkBoard(x0,y0,w,h,z,own,bid){
   const Y=z*GAP,cx=(x0+(w-1)/2-1.5)*S,cz=(3.5-(y0+(h-1)/2))*S;
-  const fr=new THREE.Mesh(new THREE.ExtrudeGeometry(rrShape(w*S+.7,h*S+.7,.14),{depth:.1,bevelEnabled:true,bevelSize:.04,bevelThickness:.04,bevelSegments:3}),bid?frameMatB:frameMat);
-  fr.rotation.x=-Math.PI/2;fr.position.set(cx,Y-.17,cz);boardGroup.add(fr);
+  const fr=new THREE.Mesh(new THREE.ExtrudeGeometry(rrShape(w*S+.5,h*S+.5,.12),{depth:.06,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:3}),bid?frameMatB:frameMat);
+  fr.rotation.x=-Math.PI/2;fr.position.set(cx,Y-.14,cz);boardGroup.add(fr);
   if(bid){fr.userData.bid=bid;frameMeshes.push(fr)}
   const inl=new THREE.Mesh(new THREE.BoxGeometry(w*S+.14,.02,h*S+.14),bid?(own=='w'?ivMat:nkMat):goldMat);inl.position.set(cx,Y-.01,cz);boardGroup.add(inl);
   for(let a=0;a<w;a++)for(let c=0;c<h;c++){const x=x0+a,y=y0+c;const base=(x+y+z)%2?LIGHT:DARK;
     const m=new THREE.Mesh(new THREE.BoxGeometry(S*.97,.07,S*.97),new THREE.MeshStandardMaterial({color:base,roughness:.18,metalness:.1,emissive:base,emissiveIntensity:.2,transparent:true,opacity:.8}));
     m.position.copy(wp(x,y,z));m.position.y-=.02;m.userData={x,y,z,base,bd:bid||null};boardGroup.add(m);cellMeshes.push(m)}
-  for(let a=0;a<w;a++)flat('abcd'[x0+a],(x0+a-1.5)*S,Y+.02,cz+(h*S/2+.4));
-  for(let c=0;c<h;c++)flat(String(y0+c+1),cx-(w*S/2+.4),Y+.02,(3.5-(y0+c))*S);
+  for(let a=0;a<w;a++)flat('abcd'[x0+a],(x0+a-1.5)*S,Y+.02,cz+(h*S/2+.3),.26);
+  for(let c=0;c<h;c++)flat(String(y0+c+1),cx-(w*S/2+.3),Y+.02,(3.5-(y0+c))*S,.26);
   const tag=bid?bid:'';const names=['I','II','III'];
   const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt(bid||names[(z-1)/2],'#b02e6f',bid?80:100),transparent:true}));
   L.position.set(cx-(w*S/2+.95),Y+.2,cz-(h*S/2-.1));L.scale.set(.7,.7,1);boardGroup.add(L)}
@@ -231,9 +231,16 @@ function buildBoards(){
   for(const z of[1,3,5])mkBoard(0,2,4,4,z,null,null);
   for(const b of ST.bd)mkBoard(b.x0,b.y0,2,2,b.z,b.own,b.id);
   const H=6*GAP;
-  // pied chromé en spirale, comme le jeu de la série
-  const pts=[];for(let i=0;i<=90;i++){const t=i/90,a=1.2+t*Math.PI*2.1;pts.push(new THREE.Vector3(Math.cos(a)*5.6,-.3+t*(H+.8),Math.sin(a)*5.4))}
-  boardGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),260,.07,12,false),chrome(0xe3e8ee,220)));
+  const rod=(a,b,r,m)=>{const d=new THREE.Vector3().subVectors(b,a),len=d.length();const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,12),m);o.position.copy(a).addScaledVector(d,.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());boardGroup.add(o)};
+  const CH=chrome(0xe3e8ee,220),Ht=H+.8,A=3.3,B=5.4;
+  const hp=t=>{const a=.6+t*Math.PI*3;return new THREE.Vector3(Math.cos(a)*A,-.3+t*Ht,Math.sin(a)*B)};
+  const pts=[];for(let i=0;i<=120;i++)pts.push(hp(i/120));
+  boardGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),320,.075,12,false),CH));
+  // bras qui tiennent chaque plateau principal sur la spirale
+  for(const z of[1,3,5]){const Y=z*GAP,P=hp((Y+.3)/Ht);const Q=new THREE.Vector3(Math.max(-2.3,Math.min(2.3,P.x)),Y-.1,Math.max(-2.3,Math.min(2.3,P.z)));rod(new THREE.Vector3(P.x,Y-.1,P.z),Q,.06,CH)}
+  // colonnes d'angle des plateaux d'attaque
+  for(const sx of[-1,1])for(const sz of[-1,1]){const px=sx*2.7,pz=sz*4.6;rod(new THREE.Vector3(px,-.3,pz),new THREE.Vector3(px,H+.3,pz),.035,CH)}
+  for(const b of ST.bd){const sx=b.x0==0?-1:1,sz=b.y0==0?1:-1,Y=b.z*GAP-.1;rod(new THREE.Vector3(sx*2.7,Y,sz*4.6),new THREE.Vector3(sx*2.25,Y,sz*4.2),.05,CH)}
   const base=new THREE.Mesh(new THREE.CylinderGeometry(6.3,6.6,.28,64),chrome(0xc9d0da,160));base.position.y=-.6;boardGroup.add(base);
   const rim=new THREE.Mesh(new THREE.TorusGeometry(6.35,.06,10,96),chrome(0xffffff,220));rim.rotation.x=Math.PI/2;rim.position.y=-.45;boardGroup.add(rim)}
 // pieces
