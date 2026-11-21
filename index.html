@@ -215,14 +215,6 @@ function makePiece(t,side){
   const g=new THREE.Group();const add=(geo,y=0,m=mat)=>{const o=new THREE.Mesh(geo,m);o.position.y=y;g.add(o);return o};
   g.userData.t=t;g.userData.side=side;
   if(NEW[t]){NEW[t](add,M,g);return g}
-  const base=[[0,0],[.34,0],[.34,.08],[.26,.14]];
-  if(t=='P'){add(lathe([...base,[.15,.35],[.12,.45],[0,.45]]));add(new THREE.SphereGeometry(.17,16,12),.55)}
-  if(t=='R'){add(lathe([...base,[.24,.55],[.3,.6],[.3,.72],[0,.72]]));for(let i=0;i<4;i++){const m=add(new THREE.BoxGeometry(.12,.12,.12),.78);m.position.x=Math.cos(i*Math.PI/2)*.2;m.position.z=Math.sin(i*Math.PI/2)*.2}}
-  if(t=='N'){add(lathe([...base,[.2,.4],[0,.4]]));const h=add(new THREE.BoxGeometry(.24,.5,.4),.62);h.rotation.x=.4;const s=add(new THREE.BoxGeometry(.2,.18,.28),.75);s.position.z=.26}
-  if(t=='B'){add(lathe([...base,[.14,.6],[.2,.7],[.1,.9],[0,.95]]));add(new THREE.SphereGeometry(.07,10,8),1)}
-  if(t=='U'){add(lathe([...base,[.2,.45],[.26,.55],[0,.55]]));add(new THREE.ConeGeometry(.07,.5,10),.85).rotation.z=-.25}
-  if(t=='Q'){add(lathe([...base,[.15,.7],[.28,.85],[.25,.95],[0,.95]]));add(new THREE.SphereGeometry(.09,12,10),1.05)}
-  if(t=='K'){add(lathe([...base,[.15,.7],[.26,.85],[.26,.95],[0,.95]]));add(new THREE.BoxGeometry(.08,.3,.08),1.12);add(new THREE.BoxGeometry(.22,.08,.08),1.15)}
   return g;
 }
 // galerie : ?galerie affiche les pièces seules (utile pour le design)
