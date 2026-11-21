@@ -2,56 +2,93 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Échecs 3D – Raumschach</title>
 <style>
-html,body{margin:0;height:100%;background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;overflow:hidden}
-#ui{position:fixed;top:12px;left:12px;background:#161b22cc;border:1px solid #30363d;border-radius:10px;padding:10px 14px;max-width:260px;font-size:14px}
-#ui h1{font-size:16px;margin:0 0 6px}#turn{font-weight:700}#msg{color:#f0b429;min-height:18px;margin-top:4px}
-button{margin-top:8px;background:#238636;color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
-#tabs{display:flex;gap:4px;margin:8px 0 6px}
-.tab{margin:0;background:#21262d;color:#8b949e;padding:5px 10px;border-radius:6px 6px 0 0}
-.tab.on{background:#30363d;color:#fff}
-.pane{display:none;max-height:62vh;overflow:auto}.pane.on{display:block}
-#rules{font-size:13px;line-height:1.4}#rules b{color:#f0b429}#rules p{margin:5px 0}
-#hist{margin:0;padding-left:0;list-style:none;font-size:13px;font-family:ui-monospace,monospace}
-#hist li{padding:2px 0;border-bottom:1px solid #21262d}#hist .n{color:#8b949e;display:inline-block;width:2.2em}
-#undo{background:#6e7681}
-#legend{position:fixed;bottom:12px;left:12px;font-size:12px;color:#8b949e}
+:root{--bg:#f3f6fa;--ink:#1b2430;--mut:#667385;--card:#fff;--line:#e2e8f0;--acc:#1f7a8c;--acc2:#16606f;--gold:#c8962b;--bad:#d64545}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+body{display:flex}
+#side{width:352px;flex:none;background:#fff;border-right:1px solid var(--line);box-shadow:4px 0 24px #1b243010;display:flex;flex-direction:column;gap:12px;padding:18px;overflow-y:auto;z-index:2}
+#stage{flex:1;position:relative;min-width:0;background:radial-gradient(ellipse at 50% 40%,#fff 0%,#eef3f8 70%)}
+#stage canvas{display:block;width:100%;height:100%}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1f7a8c,#134b57);display:grid;place-items:center;color:#fff;font-size:22px;box-shadow:0 4px 12px #1f7a8c55}
+.brand h1{font-size:19px;line-height:1.1;margin:0;letter-spacing:-.01em}.brand small{color:var(--mut);font-size:12px}
+.pcard{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card);transition:.2s}
+.pcard.act{border-color:var(--acc);box-shadow:0 0 0 3px #1f7a8c22}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:24px;flex:none}
+.av.w{background:#f6efe0;color:#444;border:2px solid #d8c9a6}.av.b{background:#252a33;color:#f2f2f2;border:2px solid #0e1116}
+.pinfo{flex:1;min-width:0}
+.pname{width:100%;border:0;background:transparent;font:600 15px inherit;color:var(--ink);padding:0;outline:none;border-bottom:1px dashed transparent}
+.pname:hover,.pname:focus{border-bottom-color:var(--line)}
+.psub{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px;margin-top:2px}
+.elo{text-align:right;line-height:1.1}.elo b{font-size:22px;letter-spacing:-.02em}.elo span{display:block;font-size:10px;letter-spacing:.12em;color:var(--mut);font-weight:600}
+.delta{font-size:12px;font-weight:700;border-radius:99px;padding:1px 8px;display:none}.delta.up{display:inline-block;background:#e3f6ea;color:#18864b}.delta.dn{display:inline-block;background:#fde8e8;color:var(--bad)}.delta.eq{display:inline-block;background:#eef1f5;color:var(--mut)}
+#status{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:9px 12px;font-size:14px}
+#status .dot{width:12px;height:12px;border-radius:50%;border:2px solid #9aa6b6;flex:none}#status .dot.w{background:#fff}#status .dot.b{background:#252a33}
+#msg{color:var(--acc2);font-weight:600;margin-left:auto;text-align:right;font-size:13px}
+#tabs{display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px}
+.tab{flex:1;border:0;background:transparent;color:var(--mut);padding:8px 6px;border-radius:9px;font:600 13px inherit;cursor:pointer}
+.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px #1b243016}
+.pane{display:none}.pane.on{display:block}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:11px;padding:10px 8px;font:600 13px inherit;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--bg)}.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.pri:hover{background:var(--acc2)}.btn.dng{color:var(--bad)}
+.hint{font-size:12px;color:var(--mut);margin:10px 2px 0;line-height:1.5}
+#hist{margin:0;padding:0;list-style:none;font:13px ui-monospace,Menlo,monospace}
+#hist li{display:flex;gap:8px;padding:6px 8px;border-radius:8px}#hist li:nth-child(odd){background:var(--bg)}#hist .n{color:var(--mut);width:2em}
+.empty{color:var(--mut);font-size:13px;text-align:center;padding:20px 0}
+.rhero{background:linear-gradient(135deg,#1f7a8c,#134b57);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.rhero:after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:#ffffff14}
+.rhero h3{margin:0 0 6px;font-size:16px}.rhero p{margin:0;font-size:13px;line-height:1.5;opacity:.92}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chip{font-size:11px;font-weight:600;background:#ffffff26;border-radius:99px;padding:3px 9px}
+.rgrid{display:grid;gap:10px}
+.rc{display:flex;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;align-items:center}
+.rc .th{width:64px;height:80px;flex:none;border-radius:11px;background:linear-gradient(160deg,#2c3a4b,#141b24);display:grid;place-items:center;overflow:hidden}
+.rc .th img{width:100%;height:100%;object-fit:contain}
+.rc h4{margin:0;font-size:15px}.rc p{margin:3px 0 6px;font-size:12.5px;color:var(--mut);line-height:1.45}
+.tg{display:flex;flex-wrap:wrap;gap:5px}.tg i{font-style:normal;font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 8px;background:#e6f2f5;color:var(--acc2)}
+.tg i.g{background:#fbf1d9;color:#8a6410}.tg i.r{background:#fde8e8;color:#b53a3a}
+.rgoal{margin-top:12px;border:1px dashed #c9d3df;border-radius:14px;padding:12px;font-size:13px;line-height:1.5}
+#legend{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--mut);background:#ffffffd9;border:1px solid var(--line);border-radius:99px;padding:6px 14px;white-space:nowrap;backdrop-filter:blur(6px)}
+@media(max-width:860px){body{flex-direction:column}#stage{order:0;flex:1 1 55%;min-height:0}#side{order:1;width:100%;flex:0 0 auto;max-height:46vh;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 24px #1b243010}#legend{display:none}}
 </style></head><body>
-<div id="ui"><h1>Échecs 3D · Raumschach 5×5×5</h1><div>Trait : <span id="turn"></span></div><div id="msg"></div>
-<div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
-<div class="pane on" id="game"><button id="reset">Nouvelle partie</button> <button id="undo">Annuler le coup</button></div>
-<div class="pane" id="rules">
-<p><b>Repères</b> : colonnes a–e, rangées 1–5, étages A (bas) à E (haut). Case = étage + colonne + rangée, par ex. <b>Bb2</b>.</p>
-<p><b>Tour</b> : en ligne droite sur un des 3 axes (avant/arrière, gauche/droite, haut/bas).</p>
-<p><b>Fou</b> : en diagonale dans un plan (2 axes changent, le 3e reste fixe).</p>
-<p><b>Licorne</b> : en diagonale à travers les 3 axes à la fois, d'un étage à l'autre.</p>
-<p><b>Dame</b> : tour + fou + licorne.</p>
-<p><b>Roi</b> : une case dans n'importe quelle direction (26 voisines).</p>
-<p><b>Cavalier</b> : 2 cases sur un axe puis 1 sur un autre. Il saute par-dessus les pièces.</p>
-<p><b>Pion</b> : avance d'une case vers l'avant (rangée) ou vers le haut/bas (étage, selon le camp). Il prend en diagonale vers l'avant. Il devient dame sur la dernière rangée ou le dernier étage.</p>
-<p><b>But</b> : mettre le roi adverse en échec et mat. Pas de roque ni de prise en passant.</p>
-</div>
-<div class="pane" id="histp"><ol id="hist"></ol></div></div>
-<div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Étages A (bas) → E (haut)</div>
+<aside id="side">
+  <div class="brand"><div class="logo">♞</div><div><h1>Échecs 3D</h1><small>Raumschach · 5 étages · 5×5×5</small></div></div>
+  <div class="pcard" id="pc-b"><div class="av b">♚</div><div class="pinfo"><input class="pname" id="nm-b" maxlength="16" aria-label="Nom des Noirs"><div class="psub">Noirs <span class="delta" id="dl-b"></span></div></div><div class="elo"><b id="el-b">1200</b><span>ELO</span></div></div>
+  <div class="pcard" id="pc-w"><div class="av w">♔</div><div class="pinfo"><input class="pname" id="nm-w" maxlength="16" aria-label="Nom des Blancs"><div class="psub">Blancs <span class="delta" id="dl-w"></span></div></div><div class="elo"><b id="el-w">1200</b><span>ELO</span></div></div>
+  <div id="status"><span class="dot w" id="dot"></span><span>Trait : <b id="turn"></b></span><span id="msg"></span></div>
+  <div id="tabs"><button class="tab on" data-t="game">Partie</button><button class="tab" data-t="rules">Règles</button><button class="tab" data-t="histp">Historique</button></div>
+  <div class="pane on" id="game">
+    <div class="btns"><button class="btn pri" id="reset">Nouvelle partie</button><button class="btn" id="undo">Annuler le coup</button><button class="btn dng" id="resign">Abandonner</button><button class="btn" id="swap">Inverser les camps</button></div>
+    <p class="hint">Chaque partie termine avec un échec et mat, un pat ou un abandon, et modifie l'ELO des deux joueurs (calcul standard, K = 32). Les classements sont gardés dans ce navigateur. Clique sur un nom pour le changer.</p>
+    <p class="hint"><a href="#" id="elo-reset" style="color:var(--mut)">Remettre les deux ELO à 1200</a></p>
+  </div>
+  <div class="pane" id="rules"></div>
+  <div class="pane" id="histp"><ol id="hist"></ol></div>
+</aside>
+<main id="stage"><div id="legend">Clic : choisir / jouer · Glisser : tourner · Molette : zoom · Étages A (bas) → E (haut)</div></main>
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 const N=5, GAP=2.3, S=1.0;
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0d1117);
-const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf1f5f9);
+const stage=document.getElementById('stage');
+const cam=new THREE.PerspectiveCamera(45,1,.1,100);
 const ren=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(ren.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x334455,1.1));
+ren.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(ren.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x9aa9b8,1.25));
 const dl=new THREE.DirectionalLight(0xffffff,1.3);dl.position.set(6,12,8);scene.add(dl);
 // orbit
-let az=0.7,el=0.45,dist=17;const target=new THREE.Vector3(0,(N-1)*GAP/2,0);
+let az=0.7,el=0.42,dist=20,zoomed=false;const target=new THREE.Vector3(0,(N-1)*GAP/2+.2,0);
 function updCam(){cam.position.set(target.x+dist*Math.cos(el)*Math.sin(az),target.y+dist*Math.sin(el),target.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(target);}
 updCam();
 let drag=null,moved=0;
 ren.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=0});
 addEventListener('pointerup',e=>{if(drag&&moved<5)click(e);drag=null});
 addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);az-=dx*.006;el=Math.max(-.2,Math.min(1.4,el+dy*.005));drag={x:e.clientX,y:e.clientY};updCam()});
-addEventListener('wheel',e=>{dist=Math.max(8,Math.min(30,dist+e.deltaY*.01));updCam()});
-addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+ren.domElement.addEventListener('wheel',e=>{zoomed=true;dist=Math.max(8,Math.min(34,dist+e.deltaY*.012));updCam()},{passive:true});
+function fit(){const w=stage.clientWidth||innerWidth,h=stage.clientHeight||innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();ren.setSize(w,h);
+  if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(21,12.5/Math.min(cam.aspect,1.6)*1.05);updCam()}}
+addEventListener('resize',fit);fit();
 // coords: x file, y rank, z level ; world: X=x, Y=z*GAP, Z=y
 const wp=(x,y,z)=>new THREE.Vector3((x-2)*S,z*GAP,(2-y)*S);
 const cellMeshes=[];
@@ -73,18 +110,18 @@ for(let z=0;z<N;z++){
     m.position.copy(wp(x,y,z));m.position.y-=.02;m.userData={x,y,z,base};boardGroup.add(m);cellMeshes.push(m);
   }
   for(let i=0;i<N;i++){flat('abcde'[i],(i-2)*S,Y+.02,2*S+.46);flat(String(i+1),-(2*S+.46),Y+.02,(2-i)*S)}
-  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt('ABCDE'[z],'#ffd166',100),transparent:true}));L.position.set(-3.5,Y+.15,2.7);L.scale.set(.85,.85,1);boardGroup.add(L);
+  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt('ABCDE'[z],'#1f7a8c',100),transparent:true}));L.position.set(-3.5,Y+.15,2.7);L.scale.set(.85,.85,1);boardGroup.add(L);
 }
 // montants lumineux aux 4 coins reliant les étages
 const H=(N-1)*GAP;
 for(const sx of[-1,1])for(const sz of[-1,1]){
   const px=sx*(N*S/2+.38),pz=sz*(N*S/2+.38);
-  const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,H+.5,12),new THREE.MeshStandardMaterial({color:0x8fd3ff,emissive:0x2a8fd0,emissiveIntensity:.9,transparent:true,opacity:.28}));
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,H+.5,12),new THREE.MeshStandardMaterial({color:0x5aa9e6,emissive:0x2a8fd0,emissiveIntensity:.5,transparent:true,opacity:.45}));
   post.position.set(px,H/2,pz);boardGroup.add(post);
   for(const yy of[-.25,H+.25]){const cap=new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),goldMat);cap.position.set(px,yy,pz);boardGroup.add(cap)}
 }
 // socle
-const floor=new THREE.Mesh(new THREE.CircleGeometry(9,64),new THREE.MeshStandardMaterial({color:0x0b1118,roughness:.5,metalness:.4}));
+const floor=new THREE.Mesh(new THREE.CircleGeometry(7.2,64),new THREE.MeshBasicMaterial({color:0xf9fbfd}));
 floor.rotation.x=-Math.PI/2;floor.position.y=-.45;boardGroup.add(floor);
 const rg=new THREE.Mesh(new THREE.RingGeometry(4.6,4.66,96),new THREE.MeshBasicMaterial({color:0x3aa0d8,transparent:true,opacity:.7,side:THREE.DoubleSide}));
 rg.rotation.x=-Math.PI/2;rg.position.y=-.44;boardGroup.add(rg);
@@ -220,16 +257,59 @@ function makePiece(t,side){
 // galerie : ?galerie affiche les pièces seules (utile pour le design)
 if(location.search.includes('galerie')){
   boardGroup.visible=false;
-  const fl=new THREE.Mesh(new THREE.CircleGeometry(8,64),new THREE.MeshStandardMaterial({color:0x151c26,roughness:.6,metalness:.3}));fl.rotation.x=-Math.PI/2;scene.add(fl);
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(8,64),new THREE.MeshStandardMaterial({color:0xe3eaf1,roughness:.75,metalness:.05}));fl.rotation.x=-Math.PI/2;scene.add(fl);
   'PRNBUQK'.split('').forEach((t,i)=>{for(const [sd,z] of [['w',1.0],['b',-1.0]]){const o=makePiece(t,sd);o.position.set((i-3)*1.15,0,z);if(sd=='b')o.rotation.y=Math.PI;scene.add(o)}});
   target.set(0,.4,0);dist=8.2;el=.55;az=0;updCam();
 }
+
+// ---------- joueurs & ELO ----------
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let players=store.get('c3d-players',null)||{w:{name:'Joueur 1',elo:1200,g:0},b:{name:'Joueur 2',elo:1200,g:0}};
+let eloDone=false,deltas={w:null,b:null};
+const $=id=>document.getElementById(id);
+function renderPlayers(){for(const sd of['w','b']){
+  const pl=players[sd];if($('nm-'+sd)!==document.activeElement)$('nm-'+sd).value=pl.name;
+  $('el-'+sd).textContent=pl.elo;
+  const d=$('dl-'+sd),v=deltas[sd];
+  if(v===null){d.className='delta';d.textContent=''}else{d.className='delta '+(v>0?'up':v<0?'dn':'eq');d.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)}
+  $('pc-'+sd).classList.toggle('act',turn==sd&&!over)}}
+for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
+function finish(res){ // res : 'w' | 'b' | 'd'
+  if(eloDone)return;eloDone=true;
+  const K=32,rw=players.w.elo,rb=players.b.elo,ew=1/(1+Math.pow(10,(rb-rw)/400));
+  const sw=res=='w'?1:res=='d'?.5:0;
+  const dw=Math.round(K*(sw-ew)),db=-dw;
+  players.w.elo+=dw;players.b.elo+=db;players.w.g++;players.b.g++;deltas={w:dw,b:db};
+  store.set('c3d-players',players);renderPlayers()}
+function resign(){if(over)return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
+  over=true;sel=null;legal=[];finish(turn=='w'?'b':'w');ui(players[turn=='w'?'b':'w'].name+' gagne par abandon');paint()}
+$('resign').onclick=resign;
+$('swap').onclick=()=>{if(hist.length&&!over&&!confirm('Inverser les camps en cours de partie ?'))return;const t=players.w;players.w=players.b;players.b=t;store.set('c3d-players',players);deltas={w:null,b:null};renderPlayers()};
+$('elo-reset').onclick=e=>{e.preventDefault();players.w.elo=players.b.elo=1200;players.w.g=players.b.g=0;deltas={w:null,b:null};store.set('c3d-players',players);renderPlayers()};
+// ---------- règles illustrées ----------
+const RULES=[
+ ['K','Roi',['1 case','26 directions'],'Se déplace d’une case dans n’importe quelle direction, y compris vers le haut ou le bas. À protéger à tout prix.'],
+ ['Q','Dame',['Glisse','Toutes directions'],'La plus puissante : combine la tour, le fou et la licorne sur les trois dimensions.'],
+ ['R','Tour',['Glisse','3 axes'],'En ligne droite sur un axe : avant/arrière, gauche/droite, mais aussi monter et descendre d’étage.'],
+ ['B','Fou',['Glisse','Diagonale plane'],'Diagonale dans un seul plan : deux axes changent, le troisième reste fixe.'],
+ ['U','Licorne',['Glisse','Triagonale'],'La pièce propre au jeu 3D : diagonale à travers les trois axes à la fois, d’étage en étage.'],
+ ['N','Cavalier',['Saute','2 + 1'],'Deux cases sur un axe puis une sur un autre. Il saute par-dessus toutes les pièces.'],
+ ['P','Pion',['1 case','Promotion'],'Avance d’une case vers l’avant (rangée) ou vers l’étage ennemi. Prend en diagonale vers l’avant. Devient dame sur la dernière rangée ou le dernier étage.']];
+function thumbs(){const out={};let r;try{r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(2);r.setSize(128,160);
+  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x556677,1.4));const l=new THREE.DirectionalLight(0xffffff,1.6);l.position.set(3,5,4);sc.add(l);
+  const c=new THREE.PerspectiveCamera(28,128/160,.1,50);const H={P:.95,R:.95,N:1.12,B:1.35,U:1.2,Q:1.45,K:1.7};
+  for(const [t] of RULES){const o=makePiece(t,'w');o.rotation.y=.9;sc.add(o);const h=H[t];c.position.set(0,h*.5+.55,h*2.95);c.lookAt(0,h*.48,0);r.render(sc,c);out[t]=r.domElement.toDataURL();sc.remove(o)}
+  r.dispose()}catch(e){}return out}
+function buildRules(){const th=thumbs();
+  $('rules').innerHTML='<div class="rhero"><h3>Raumschach, les échecs en 3D</h3><p>Cinq échiquiers 5×5 empilés. Toutes les pièces peuvent aussi changer d’étage. Case = étage + colonne + rangée, par exemple <b>Bb2</b>.</p><div class="chips"><span class="chip">Colonnes a–e</span><span class="chip">Rangées 1–5</span><span class="chip">Étages A–E</span></div></div>'+
+  '<div class="rgrid">'+RULES.map(([t,n,tg,d])=>'<div class="rc"><div class="th">'+(th[t]?'<img alt="'+n+'" src="'+th[t]+'">':'')+'</div><div><h4>'+n+'</h4><p>'+d+'</p><div class="tg">'+tg.map((x,i)=>'<i class="'+(i?'g':'')+'">'+x+'</i>').join('')+'</div></div></div>').join('')+'</div>'+
+  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Pas de roque ni de prise en passant dans cette version. Une partie nulle (pat) donne un ELO partagé.</div>'}
 // game state
 let board,turn,sel,legal,over,pieceObjs,hist=[];
 const key=(x,y,z)=>x+','+y+','+z;
 function init(){
   if(pieceObjs)pieceObjs.forEach(o=>scene.remove(o));pieceObjs=[];
-  board=new Map();turn='w';sel=null;legal=[];over=false;hist=[];
+  board=new Map();turn='w';sel=null;legal=[];over=false;hist=[];eloDone=false;deltas={w:null,b:null};
   const back0='RNKNR',back1='BUQUB';
   const put=(x,y,z,t,s)=>board.set(key(x,y,z),{t,s});
   for(let x=0;x<N;x++){
@@ -273,9 +353,9 @@ function apply(b,from,to){const nb=new Map(b);const p=nb.get(key(...from));nb.de
 function legalMoves(b,x,y,z){const s=b.get(key(x,y,z)).s;return pseudo(b,x,y,z).filter(t=>{const nb=apply(b,[x,y,z],t);const k=findK(nb,s);return k&&!attacked(nb,k,s=='w'?'b':'w')})}
 function anyMove(b,s){for(const [k,p] of b)if(p.s==s){const [x,y,z]=k.split(',').map(Number);if(legalMoves(b,x,y,z).length)return true}return false}
 const sq=(c)=>'ABCDE'[c[2]]+'abcde'[c[0]]+(c[1]+1);
-function renderHist(){const o=document.getElementById('hist');o.innerHTML='';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)});o.parentNode.scrollTop=1e9}
-function undo(){if(!hist.length)return;const h=hist.pop();board=h.before;turn=h.s;sel=null;legal=[];over=false;sync();ui();renderHist();paint()}
-function ui(msg){document.getElementById('turn').textContent=turn=='w'?'Blancs':'Noirs';document.getElementById('msg').textContent=msg||''}
+function renderHist(){const o=document.getElementById('hist');o.innerHTML='';if(!hist.length)o.innerHTML='<div class="empty">Aucun coup joué pour l\u2019instant.</div>';hist.forEach((h,i)=>{const li=document.createElement('li');li.innerHTML='<span class="n">'+(i+1)+'.</span>'+(h.s=='w'?'⚪ ':'⚫ ')+h.txt;o.appendChild(li)});}
+function undo(){if(!hist.length||over)return;const h=hist.pop();board=h.before;turn=h.s;sel=null;legal=[];over=false;sync();ui();renderHist();paint()}
+function ui(msg){$('turn').textContent=turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';renderPlayers()}
 function paint(){for(const m of cellMeshes){const {x,y,z,base}=m.userData;m.material.color.setHex(base);m.material.opacity=.86;
   if(sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){m.material.color.setHex(0xffc83d);m.material.opacity=.97}
   const l=legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z);if(l){m.material.color.setHex(board.get(key(x,y,z))?0xff5d5d:0x5ef08a);m.material.opacity=.95}}}
@@ -287,13 +367,13 @@ function click(e){if(over)return;const r=ren.domElement.getBoundingClientRect();
 function play(x,y,z){const p=board.get(key(x,y,z));
   if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){const mover=board.get(key(...sel));const cap=board.get(key(x,y,z));hist.push({before:board,s:turn,txt:(mover.t=='P'?'':mover.t)+sq(sel)+(cap?'×':'→')+sq([x,y,z])});board=apply(board,sel,[x,y,z]);sel=null;legal=[];turn=turn=='w'?'b':'w';sync();
     const k=findK(board,turn),chk=attacked(board,k,turn=='w'?'b':'w'),has=anyMove(board,turn);
-    if(!has){over=true;ui(chk?'Échec et mat ! '+(turn=='w'?'Les Noirs':'Les Blancs')+' gagnent.':'Pat — partie nulle.')}else ui(chk?'Échec !':'');if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();return}
+    if(!has){over=true;finish(chk?(turn=='w'?'b':'w'):'d');ui(chk?'Échec et mat ! '+players[turn=='w'?'b':'w'].name+' gagne':'Pat : partie nulle')}else ui(chk?'Échec !':'');if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();return}
   if(p&&p.s==turn){sel=[x,y,z];legal=legalMoves(board,x,y,z);ui(LN[p.t]+' — '+legal.length+' coup(s)')}else{sel=null;legal=[]}
   paint()}
 document.getElementById('undo').onclick=undo;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>{init();paint()};
 window.game={play:(x,y,z)=>play(x,y,z),az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
-init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
+buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 </script></body></html>
