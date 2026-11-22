@@ -50,7 +50,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 #status b{white-space:nowrap}#status small{display:block;font-size:10.5px;letter-spacing:.14em;color:var(--mut);font-weight:700;text-transform:uppercase}#status b{font-size:19px;letter-spacing:-.01em}
 .mode{margin-left:auto;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:4px 10px;white-space:nowrap}
 #msg{margin-top:12px;min-height:38px;color:var(--acc2);font-weight:600;font-size:13.5px;line-height:1.4;background:var(--bg);border-radius:10px;padding:9px 12px}
-#msg:empty:before{content:"Clique une pièce, puis une case verte. Glisse pour tourner le plateau.";color:var(--mut);font-weight:500}
+#msg:empty:before{content:"Clique une pièce, puis un point (ou un cercle rouge pour une prise). Glisse pour tourner le plateau.";color:var(--mut);font-weight:500}
 #tabs{display:flex;gap:2px;background:var(--bg);border-radius:12px;padding:4px;margin:14px 18px 0}
 .tab{flex:1;border:0;background:transparent;color:var(--mut);padding:8px 4px;border-radius:9px;font:600 12.5px inherit;cursor:pointer}
 .tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px #1b243016}
@@ -625,8 +625,12 @@ function paint(){
     if(lm&&((lm.k=='p'&&(eq(lm.f,x,y,z)||eq(lm.t,x,y,z)))||(lm.k=='b'&&bd==lm.id))){c=0xf3d36b;op=.92}
     if(selB&&bd==selB){c=0xffe08a;op=.95}
     if(eq(sel,x,y,z)){c=0xffc83d;op=.97}
-    if(legal.find(t=>eq(t,x,y,z))){c=ST.m.get(key(x,y,z))?0xc1121f:0x5ef08a;op=.95}
     m.material.color.setHex(c);m.material.opacity=op}
+  for(const t of legal){const cap=ST.m.get(key(t[0],t[1],t[2])),p=wp(t[0],t[1],t[2]);
+    if(cap){const r=new THREE.Mesh(new THREE.TorusGeometry(.43,.05,10,40),new THREE.MeshBasicMaterial({color:0xe02b3a,depthTest:false,transparent:true}));
+      r.rotation.x=-Math.PI/2;r.position.set(p.x,p.y+.05,p.z);r.renderOrder=5;ghostGroup.add(r)}
+    else{const d=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.03,24),new THREE.MeshBasicMaterial({color:0x2b2b30,transparent:true,opacity:.55,depthTest:false}));
+      d.position.set(p.x,p.y+.05,p.z);d.renderOrder=5;ghostGroup.add(d)}}
   renderBoardsList()}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
 function click(e){const v=document.body.dataset.view;if(v!='play'&&!(v=='home'&&puzHome))return;if(e.target!==ren.domElement)return;if(over||thinking||(botOn()&&turn=='b'&&!puzzleMode)||(net&&!puzzleMode&&turn!=net.me))return;const r=ren.domElement.getBoundingClientRect();mp.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mp,cam);
@@ -655,7 +659,8 @@ function commit(m,remote){
   if(chk)hist[hist.length-1].txt+=has?'+':'#';renderHist();paint();botNext()}
 function play(x,y,z){const p=ST.m.get(key(x,y,z));
   if(sel&&legal.find(t=>t[0]==x&&t[1]==y&&t[2]==z)){commit({k:'p',f:sel,t:[x,y,z]});return}
-  if(p&&p.s==turn){sel=[x,y,z];selB=null;slots=[];legal=legalAll(ST,turn).filter(m=>m.k=='p'&&m.f[0]==x&&m.f[1]==y&&m.f[2]==z).map(m=>m.t);ui(LN[p.t]+' '+sq(sel)+' : '+(legal.length?legal.length+' coup(s) en vert':'aucun coup possible'))}
+  if(p&&p.s==turn&&sel&&sel[0]==x&&sel[1]==y&&sel[2]==z){sel=null;legal=[];ui('');paint();return}
+  if(p&&p.s==turn){sel=[x,y,z];selB=null;slots=[];legal=legalAll(ST,turn).filter(m=>m.k=='p'&&m.f[0]==x&&m.f[1]==y&&m.f[2]==z).map(m=>m.t);ui(LN[p.t]+' '+sq(sel)+' : '+(legal.length?legal.length+' coup(s)':'aucun coup possible'))}
   else{sel=null;legal=[];selB=null;slots=[]}
   paint()}
 // ---------- bot ----------
@@ -688,6 +693,7 @@ $('v-home').onclick=()=>{zoomed=false;const d=Math.max(25,17/Math.min(cam.aspect
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>newGame();
 window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
+window.__dbg={play,get sel(){return sel},get legal(){return legal},get marks(){return ghostGroup.children.length},get hist(){return hist.length}};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,y0:slots[i].y0,z:slots[i].z}),cam:()=>({az,el,dist}),all:()=>legalAll(ST,turn).length,doMove:i=>commit(legalAll(ST,turn)[i]),turn:()=>turn,az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 function buildHero(){const g=boardGroup.clone(true);g.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial)o.material=o.material.clone()});scene2.add(g);
   for(const [k,p] of newState().m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;scene2.add(o)}}
