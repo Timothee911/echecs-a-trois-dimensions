@@ -275,7 +275,7 @@ const scene=new THREE.Scene();
 const stage=document.getElementById('stage');
 const cam=new THREE.PerspectiveCamera(45,1,.1,100);
 const ren=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});ren.setClearColor(0x000000,0);
-ren.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(ren.domElement);
+ren.setPixelRatio(Math.min(devicePixelRatio,1.75));stage.appendChild(ren.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0x9aa9b8,1.25));
 const dl=new THREE.DirectionalLight(0xffffff,1.3);dl.position.set(6,12,8);scene.add(dl);
 // orbit
@@ -333,7 +333,7 @@ function buildBoards(){boardGroup.clear();cellMeshes.length=0;frameMeshes.length
 const LN={P:'Pion',R:'Tour',N:'Cavalier',B:'Fou',U:'Licorne',Q:'Dame',K:'Roi'};
 function lathe(pts){return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),24)}
 const MATS={w:{body:new THREE.MeshPhongMaterial({color:0xe6eaf0,specular:0xffffff,shininess:110}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})},
- b:{body:new THREE.MeshPhongMaterial({color:0x1b1e24,specular:0x9aa3b2,shininess:90}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})}};
+ b:{body:new THREE.MeshPhongMaterial({color:0x5a6b8c,specular:0xc9d3e6,shininess:80}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})}};
 function prof(pts,seg=56){const c=new THREE.SplineCurve(pts.map(p=>new THREE.Vector2(p[0],p[1])));return new THREE.LatheGeometry(c.getPoints(seg).map(v=>new THREE.Vector2(Math.max(0,v.x),v.y)),40)}
 function ring(add,M,y,r,t=.02){const o=add(new THREE.TorusGeometry(r,t,10,40),y,M.trim);o.rotation.x=Math.PI/2;return o}
 function plinth(add,M,r=.36){add(lathe([[0,0],[r,0],[r,.04],[r*.9,.07],[r*.9,.09],[r*.78,.12],[0,.12]]));ring(add,M,.075,r*.92,.018)}
@@ -613,6 +613,7 @@ function init(){
   puzzleMode=false;puzHome=false;document.body.classList.remove('puz');$('endc').classList.remove('on');
   ST=newState();turn='w';sel=null;legal=[];selB=null;slots=[];over=false;hist=[];clearTimeout(botT);thinking=false;eloDone=false;deltas={w:null,b:null};
   sync();ui();renderHist()}
+const RING_G=new THREE.TorusGeometry(.43,.05,10,40),RING_M=new THREE.MeshBasicMaterial({color:0xe02b3a,depthTest:false,transparent:true}),DOT_G=new THREE.CylinderGeometry(.14,.14,.03,24),DOT_M=new THREE.MeshBasicMaterial({color:0x2b2b30,transparent:true,opacity:.55,depthTest:false});
 const ghostGroup=new THREE.Group();scene.add(ghostGroup);const ghostMeshes=[];
 function paint(){
   ghostGroup.clear();ghostMeshes.length=0;
@@ -627,9 +628,9 @@ function paint(){
     if(eq(sel,x,y,z)){c=0xffc83d;op=.97}
     m.material.color.setHex(c);m.material.opacity=op}
   for(const t of legal){const cap=ST.m.get(key(t[0],t[1],t[2])),p=wp(t[0],t[1],t[2]);
-    if(cap){const r=new THREE.Mesh(new THREE.TorusGeometry(.43,.05,10,40),new THREE.MeshBasicMaterial({color:0xe02b3a,depthTest:false,transparent:true}));
+    if(cap){const r=new THREE.Mesh(RING_G,RING_M);
       r.rotation.x=-Math.PI/2;r.position.set(p.x,p.y+.05,p.z);r.renderOrder=5;ghostGroup.add(r)}
-    else{const d=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.03,24),new THREE.MeshBasicMaterial({color:0x2b2b30,transparent:true,opacity:.55,depthTest:false}));
+    else{const d=new THREE.Mesh(DOT_G,DOT_M);
       d.position.set(p.x,p.y+.05,p.z);d.renderOrder=5;ghostGroup.add(d)}}
   renderBoardsList()}
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
@@ -818,5 +819,5 @@ $('net-code').addEventListener('keydown',e=>{if(e.key=='Enter')netJoin($('net-co
 $('net-back').onclick=()=>{clearTimeout(netT);if(!net&&netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}nm.classList.remove('on');$('net-copy').style.display=''};
 setTheme(store.get('c3d-theme','light'));
 if(location.search.includes('galerie')){setView('play',true)}else route();
-(function loop(){requestAnimationFrame(loop);if(tw){const k=.16;az+=(tw.a-az)*k;el+=(tw.e-el)*k;dist+=(tw.d-dist)*k;if(Math.abs(tw.a-az)+Math.abs(tw.e-el)+Math.abs(tw.d-dist)<.003){az=tw.a;el=tw.e;dist=tw.d;tw=null}updCam()}if(heroMode){az2+=.0035;updCam2();ren2.render(scene2,cam2)}ren.render(scene,cam)})();
+(function loop(){requestAnimationFrame(loop);if(tw){const k=.16;az+=(tw.a-az)*k;el+=(tw.e-el)*k;dist+=(tw.d-dist)*k;if(Math.abs(tw.a-az)+Math.abs(tw.e-el)+Math.abs(tw.d-dist)<.003){az=tw.a;el=tw.e;dist=tw.d;tw=null}updCam()}if(heroMode&&!document.hidden){az2+=.0035;updCam2();ren2.render(scene2,cam2)}if(!document.hidden&&(document.body.dataset.view=='play'||puzHome))ren.render(scene,cam)})();
 </script></body></html>
