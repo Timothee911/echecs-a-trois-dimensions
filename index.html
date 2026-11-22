@@ -41,6 +41,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 @keyframes fin{from{opacity:0}}
 .endbox{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:28px 28px 22px;text-align:center;box-shadow:0 30px 80px #0003;width:min(360px,90%)}
 .endbox .big{font-size:52px;line-height:1}.endbox h2{margin:10px 0 4px;font-size:28px;letter-spacing:-.02em}.endbox p{margin:0 0 16px;color:var(--mut)}
+.endbox .tag{font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin:-2px 0 6px}
 .endbox .ed{margin:0 0 20px;min-height:10px}.endbox .dl{font-size:17px;padding:6px 14px}
 .endbox .row{display:flex;gap:8px}.endbox .row .btn{flex:1}
 .sh{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
@@ -245,7 +246,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
     <button id="v-in" title="Zoomer">+</button><button id="v-out" title="Dézoomer">−</button>
   </div>
   <div id="vhint">Glisser : tourner · Molette : zoom</div>
-  <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
+  <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><div class="tag">Un seul roi.</div><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
 </main>
 <aside id="side">
   <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div hidden id="lvh"><div class="lv" id="lv"><button data-v="1"></button><button data-v="2"></button><button data-v="3"></button><button data-v="0"></button><button id="o-net"></button></div></div></div>
@@ -292,6 +293,7 @@ function fit(){const host=ren.domElement.parentElement||stage;const w=host.clien
   if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(25,17/Math.min(cam.aspect,1.6)*1.1);updCam()}}
 addEventListener('resize',fit);fit();
 // second rendu (accueil) : même scène vue par une caméra qui tourne
+const scene2=new THREE.Scene();scene2.add(new THREE.HemisphereLight(0xffffff,0x9aa9b8,1.25));{const l=new THREE.DirectionalLight(0xffffff,1.3);l.position.set(6,12,8);scene2.add(l)}
 const ren2=new THREE.WebGLRenderer({antialias:true,alpha:true});ren2.setClearColor(0x000000,0);ren2.setPixelRatio(Math.min(devicePixelRatio,2));
 const cam2=new THREE.PerspectiveCamera(40,1,.1,200);let az2=.7;
 function updCam2(){const d=27,e=.34;cam2.position.set(target.x+d*Math.cos(e)*Math.sin(az2),target.y+d*Math.sin(e)-1,target.z+d*Math.cos(e)*Math.cos(az2));cam2.lookAt(target.x,target.y-.8,target.z)}
@@ -687,7 +689,9 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 document.getElementById('reset').onclick=()=>newGame();
 window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,y0:slots[i].y0,z:slots[i].z}),cam:()=>({az,el,dist}),all:()=>legalAll(ST,turn).length,doMove:i=>commit(legalAll(ST,turn)[i]),turn:()=>turn,az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
-applyMode();buildRules();init();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
+function buildHero(){const g=boardGroup.clone(true);g.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial)o.material=o.material.clone()});scene2.add(g);
+  for(const [k,p] of newState().m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;scene2.add(o)}}
+applyMode();buildRules();init();buildHero();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 
 // ---------- navigation, thème, accueil, classement ----------
 function setTheme(t){document.documentElement.dataset.theme=t;store.set('c3d-theme',t);if(typeof ST!=='undefined'&&ST){buildBoards();paint()}}
@@ -808,5 +812,5 @@ $('net-code').addEventListener('keydown',e=>{if(e.key=='Enter')netJoin($('net-co
 $('net-back').onclick=()=>{clearTimeout(netT);if(!net&&netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}nm.classList.remove('on');$('net-copy').style.display=''};
 setTheme(store.get('c3d-theme','light'));
 if(location.search.includes('galerie')){setView('play',true)}else route();
-(function loop(){requestAnimationFrame(loop);if(tw){const k=.16;az+=(tw.a-az)*k;el+=(tw.e-el)*k;dist+=(tw.d-dist)*k;if(Math.abs(tw.a-az)+Math.abs(tw.e-el)+Math.abs(tw.d-dist)<.003){az=tw.a;el=tw.e;dist=tw.d;tw=null}updCam()}if(heroMode){az2+=.0035;updCam2();ren2.render(scene,cam2)}ren.render(scene,cam)})();
+(function loop(){requestAnimationFrame(loop);if(tw){const k=.16;az+=(tw.a-az)*k;el+=(tw.e-el)*k;dist+=(tw.d-dist)*k;if(Math.abs(tw.a-az)+Math.abs(tw.e-el)+Math.abs(tw.d-dist)<.003){az=tw.a;el=tw.e;dist=tw.d;tw=null}updCam()}if(heroMode){az2+=.0035;updCam2();ren2.render(scene2,cam2)}ren.render(scene,cam)})();
 </script></body></html>
