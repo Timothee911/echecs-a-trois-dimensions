@@ -107,7 +107,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:48px 0 40px}
 .eyebrow{font:600 12px ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--acc);margin-bottom:18px}
-.hero h1{font-size:clamp(40px,6vw,76px);line-height:.98;letter-spacing:-.035em;margin:0 0 22px;font-weight:800}
+.hero h1{font-size:clamp(34px,4.5vw,58px);line-height:.98;letter-spacing:-.035em;margin:0 0 22px;font-weight:800}
 .hero h1 em{font-style:normal;color:var(--acc)}
 .hero p{font-size:17px;line-height:1.55;color:var(--mut);max-width:520px;margin:0 0 28px}
 .hbtns{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
@@ -207,7 +207,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
   <div class="hero">
     <div>
       <div class="eyebrow">JEU DE STRATÉGIE · 2 JOUEURS</div>
-      <h1>Cinq niveaux.<br>125 cases.<br><em>Un seul roi.</em></h1>
+      <h1>Cinq niveaux.<br>125 cases.<br><em>Un seul roi à la fin.</em></h1>
       <p>Les échecs en trois dimensions : cinq plateaux 5×5 superposés, des pièces qui montent et descendent d’un niveau à l’autre, et la licorne, qui traverse les trois axes. Mets le roi adverse en échec et mat.</p>
       <div class="hbtns">
         <button class="hbtn pri" id="h-bot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Jouer contre le bot</button>
@@ -246,7 +246,7 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
     <button id="v-in" title="Zoomer">+</button><button id="v-out" title="Dézoomer">−</button>
   </div>
   <div id="vhint">Glisser : tourner · Molette : zoom</div>
-  <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><div class="tag">Un seul roi.</div><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
+  <div id="endc"><div class="endbox"><div class="big" id="end-ic">♔</div><h2 id="end-t"></h2><p id="end-s"></p><div class="ed" id="end-d"></div><div class="row"><button class="btn" id="end-x">Voir le plateau</button><button class="btn pri" id="end-n">Rejouer</button></div></div></div>
 </main>
 <aside id="side">
   <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div hidden id="lvh"><div class="lv" id="lv"><button data-v="1"></button><button data-v="2"></button><button data-v="3"></button><button data-v="0"></button><button id="o-net"></button></div></div></div>
