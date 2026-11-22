@@ -206,8 +206,8 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
   <div class="hero">
     <div>
       <div class="eyebrow">JEU DE STRATÉGIE · 2 JOUEURS</div>
-      <h1>Trois plateaux.<br>Six niveaux.<br><em>Un seul roi.</em></h1>
-      <p>Les échecs tridimensionnels de Star Trek : trois plateaux 4×4 posés en escalier, quatre plateaux d’attaque que l’on déplace, et des pièces qui changent de niveau. Mets le roi adverse en échec et mat.</p>
+      <h1>Cinq niveaux.<br>125 cases.<br><em>Un seul roi.</em></h1>
+      <p>Les échecs en trois dimensions : cinq plateaux 5×5 superposés, des pièces qui montent et descendent d’un niveau à l’autre, et la licorne, qui traverse les trois axes. Mets le roi adverse en échec et mat.</p>
       <div class="hbtns">
         <button class="hbtn pri" id="h-bot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Jouer contre le bot</button>
         <button class="hbtn" id="h-net"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>Inviter un ami</button>
@@ -223,8 +223,8 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
     <div class="card" id="c-games"></div>
   </div>
   <div class="feats">
-    <div class="feat"><div class="ic">▦</div><b>Plateaux d’attaque mobiles</b><span>Au lieu de jouer une pièce, déplace un plateau 2×2 d’un niveau ou de l’autre côté, avec ses pièces.</span></div>
-    <div class="feat"><div class="ic">♞</div><b>Un bot à trois niveaux</b><span>Facile, Moyen ou Fort. Il joue les Noirs et sait lui aussi déplacer ses plateaux d’attaque.</span></div>
+    <div class="feat"><div class="ic">▦</div><b>Cinq niveaux superposés</b><span>Cinq plateaux 5×5, de A à E. Les pièces se déplacent dans les trois dimensions, d’un étage à l’autre.</span></div>
+    <div class="feat"><div class="ic">♞</div><b>Un bot à trois niveaux</b><span>Facile, Moyen ou Fort. Il joue les Noirs et sait lui aussi jouer dans les trois dimensions.</span></div>
     <div class="feat"><div class="ic">★</div><b>Classement ELO</b><span>Ton ELO évolue à chaque partie, comme aux échecs classiques, et reste gardé dans ton navigateur.</span></div>
   </div>
 </div></section>
@@ -249,10 +249,10 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 </main>
 <aside id="side">
   <div class="sh"><div id="status"><span class="dot w" id="dot"></span><div><small>Au trait</small><b id="turn"></b></div><span class="mode" id="mode"></span></div><div id="msg"></div><div hidden id="lvh"><div class="lv" id="lv"><button data-v="1"></button><button data-v="2"></button><button data-v="3"></button><button data-v="0"></button><button id="o-net"></button></div></div></div>
-  <div id="tabs"><button class="tab on" data-t="histp">Coups</button><button class="tab" data-t="boards">Plateaux</button></div>
+  <div id="tabs"><button class="tab on" data-t="histp">Coups</button><button class="tab" data-t="boards">Niveaux</button></div>
   <div class="panes">
     <div class="pane on" id="histp"><div id="hist"></div></div>
-    <div class="pane" id="boards"><div class="sect"><h5>Plateaux d’attaque</h5><div id="bdlist"></div><p class="hint">Au lieu de jouer une pièce, déplace un plateau que tu contrôles vers un tenon libre voisin. Les pièces posées dessus le suivent.</p></div><div class="sect"><h5>Les six niveaux</h5><div class="lvls" id="lvls"></div></div></div>
+    <div class="pane" id="boards"><div class="sect"><h5>Les cinq niveaux</h5><div class="lvls" id="lvls"></div><p class="hint">Les Blancs commencent en bas (niveaux A et B), les Noirs en haut (D et E). Le niveau C est vide au départ. Les pièces peuvent monter ou descendre d’un niveau à l’autre.</p></div></div>
     <div id="rules" hidden></div><div hidden><button id="swap"></button><a id="elo-reset" href="#"></a><select id="opp" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select></div>
   </div>
   <div class="acts"><button class="btn" id="undo">↶ Annuler</button><button class="btn dng" id="resign">⚑ Abandon</button><button class="btn pri" id="reset">Nouvelle partie</button></div>
@@ -268,10 +268,8 @@ body[data-view=home] #home-view,body[data-view=rank] #rank-view,body[data-view=r
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
-const GAP=2.0, S=1.0, FILES='zabcde';
-const YZ=z=>(z>>1)*4.6+(z&1)*2.2; // hauteur d'un niveau : plateaux principaux tous les 4,6, attaque 2,2 au-dessus
-const MAINS=[0,1,2].map(i=>({x0:1,y0:1+2*i,z:2*i}));
-const PINS=[];for(let i=0;i<3;i++)for(const x0 of[0,4])for(const e of[0,1])PINS.push({i,x0,y0:e?4+2*i:2*i,z:2*i+1});
+const N=5,GAP=2.7,S=1.0,FILES='abcde',LV='ABCDE';
+const YZ=z=>z*GAP;
 const scene=new THREE.Scene(); 
 const stage=document.getElementById('stage');
 const cam=new THREE.PerspectiveCamera(45,1,.1,100);
@@ -280,7 +278,7 @@ ren.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(ren.domElement
 scene.add(new THREE.HemisphereLight(0xffffff,0x9aa9b8,1.25));
 const dl=new THREE.DirectionalLight(0xffffff,1.3);dl.position.set(6,12,8);scene.add(dl);
 // orbit
-let az=0.6,el=0.42,dist=24,zoomed=false,tw=null;const target=new THREE.Vector3(0,4.5,0);
+let az=0.6,el=0.5,dist=24,zoomed=false,tw=null;const target=new THREE.Vector3(0,2*GAP,0);
 function updCam(){cam.position.set(target.x+dist*Math.cos(el)*Math.sin(az),target.y+dist*Math.sin(el),target.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(target);}
 updCam();
 let drag=null,moved=0;
@@ -291,68 +289,46 @@ ren.domElement.addEventListener('wheel',e=>{if(document.body.dataset.view!='play
 let heroMode=false;
 function fit(){const host=ren.domElement.parentElement||stage;const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();ren.setSize(w,h);
   if(heroMode){dist=21;el=.4;updCam();return}
-  if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(26,16/Math.min(cam.aspect,1.6)*1.1);updCam()}}
+  if(!zoomed&&!location.search.includes('galerie')){dist=Math.max(25,17/Math.min(cam.aspect,1.6)*1.1);updCam()}}
 addEventListener('resize',fit);fit();
 // second rendu (accueil) : même scène vue par une caméra qui tourne
 const ren2=new THREE.WebGLRenderer({antialias:true,alpha:true});ren2.setClearColor(0x000000,0);ren2.setPixelRatio(Math.min(devicePixelRatio,2));
 const cam2=new THREE.PerspectiveCamera(40,1,.1,200);let az2=.7;
-function updCam2(){const d=34,e=.36;cam2.position.set(target.x+d*Math.cos(e)*Math.sin(az2),target.y+d*Math.sin(e)-1,target.z+d*Math.cos(e)*Math.cos(az2));cam2.lookAt(target.x,target.y-.8,target.z)}
+function updCam2(){const d=27,e=.34;cam2.position.set(target.x+d*Math.cos(e)*Math.sin(az2),target.y+d*Math.sin(e)-1,target.z+d*Math.cos(e)*Math.cos(az2));cam2.lookAt(target.x,target.y-.8,target.z)}
 function fit2(){const h=ren2.domElement.parentElement;if(!h)return;const w=h.clientWidth||400,hh=h.clientHeight||400;cam2.aspect=w/hh;cam2.updateProjectionMatrix();ren2.setSize(w,hh);updCam2()}
 addEventListener('resize',fit2);
-// ---------- plateaux : disposition de la série ----------
+
 // 3 plateaux 4×4 en escalier (Blancs rangées 1–4 niv. 0, Neutre 3–6 niv. 2, Noirs 5–8 niv. 4)
 // et 4 plateaux d'attaque 2×2 posés sur des tenons aux coins, un niveau au-dessus.
 // coords : x colonne z,a,b,c,d,e (0–5), y rangée 0–9, z niveau 0–5 ; monde : X=x, Y=YZ(z), Z=y
-const wp=(x,y,z)=>new THREE.Vector3((x-2.5)*S,YZ(z),(4.5-y)*S);
+// 5 plateaux 5×5 superposés (niveaux A à E). coords : x colonne a–e, y rangée 1–5 (0–4), z niveau A–E (0–4)
+const wp=(x,y,z)=>new THREE.Vector3((x-2)*S,YZ(z),(2-y)*S);
 const cellMeshes=[],frameMeshes=[];
 const boardGroup=new THREE.Group();scene.add(boardGroup);
-const LIGHT=0xfde6f0,DARK=0xe0679c,GOLD=0xd9ac3f;
+const LIGHT=0xf6e4c2,DARK=0xc98c4f,GOLD=0xd9ac3f;
 const chrome=(c,sh=120)=>new THREE.MeshPhongMaterial({color:c,specular:0xffffff,shininess:sh});
 function rrShape(w,h,r){const s=new THREE.Shape(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
 const texCache=new Map();
 function txt(t,color,size=96){const k=t+color+size;if(texCache.has(k))return texCache.get(k);const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.fillStyle=color;g.font='600 '+size+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,64,70);const tx=new THREE.CanvasTexture(c);tx.anisotropy=4;texCache.set(k,tx);return tx}
-function flat(t,x,y,z,sz=.3){const m=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:txt(t,'#5b2a46'),transparent:true}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);boardGroup.add(m)}
-const frameMat=chrome(0xb3bbc7),frameMatB=chrome(0x8f99a8);
+function flat(t,x,y,z,sz=.3){const m=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:txt(t,'#5b3a1c'),transparent:true}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);boardGroup.add(m)}
+const frameMat=chrome(0xb98a52,60),frameMatB=chrome(0x8f99a8);
 const goldMat=chrome(0xeef1f5,180);
 const ivMat=chrome(0xffffff,180);
 const nkMat=chrome(0x3a404a,120);
-function mkBoard(x0,y0,w,h,z,own,bid){
-  const Y=YZ(z),cx=(x0+(w-1)/2-2.5)*S,cz=(4.5-(y0+(h-1)/2))*S;
-  const fr=new THREE.Mesh(new THREE.ExtrudeGeometry(rrShape(w*S+.5,h*S+.5,.12),{depth:.06,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:3}),bid?frameMatB:frameMat);
-  fr.rotation.x=-Math.PI/2;fr.position.set(cx,Y-.14,cz);boardGroup.add(fr);
-  if(bid){fr.userData.bid=bid;frameMeshes.push(fr)}
-  const inl=new THREE.Mesh(new THREE.BoxGeometry(w*S+.14,.02,h*S+.14),bid?(own=='w'?ivMat:nkMat):goldMat);inl.position.set(cx,Y-.01,cz);boardGroup.add(inl);
-  for(let a=0;a<w;a++)for(let c=0;c<h;c++){const x=x0+a,y=y0+c;const base=(x+y)%2?LIGHT:DARK;
-    const m=new THREE.Mesh(new THREE.BoxGeometry(S*.97,.07,S*.97),new THREE.MeshStandardMaterial({color:base,roughness:.18,metalness:.1,emissive:base,emissiveIntensity:.2,transparent:true,opacity:.8}));
-    m.position.copy(wp(x,y,z));m.position.y-=.02;m.userData={x,y,z,base,bd:bid||null};boardGroup.add(m);cellMeshes.push(m)}
-  if(!bid){for(let a=0;a<w;a++)flat(FILES[x0+a],(x0+a-2.5)*S,Y+.02,cz+(h*S/2+.3),.26);
-    for(let c=0;c<h;c++)flat(String(y0+c),cx-(w*S/2+.3),Y+.02,(4.5-(y0+c))*S,.26)}
-  else for(let a=0;a<w;a++)flat(FILES[x0+a],(x0+a-2.5)*S,Y+.02,cz+(own=='w'?1:-1)*(h*S/2+.3),.22);
-  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt(bid||['I','II','III'][z/2],'#b02e6f',bid?80:100),transparent:true}));
-  L.position.set(bid?cx+(x0?1:-1)*(w*S/2+.55):cx-(w*S/2+.95),Y+.2,bid?cz:cz-(h*S/2-.1));L.scale.set(bid?.55:.7,bid?.55:.7,1);boardGroup.add(L)}
-function buildBoards(){
-  boardGroup.clear();cellMeshes.length=0;frameMeshes.length=0;
-  for(const b of MAINS)mkBoard(b.x0,b.y0,4,4,b.z,null,null);
-  for(const b of ST.bd)mkBoard(b.x0,b.y0,2,2,b.z,b.own,b.id);
-  const rod=(a,b,r,m)=>{const d=new THREE.Vector3().subVectors(b,a),len=d.length();const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,12),m);o.position.copy(a).addScaledVector(d,.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());boardGroup.add(o)};
-  const CH=chrome(0xe3e8ee,220),PED=1.7,top=YZ(4),Ht=top+1.2+PED,A=3.5,B=6.3;
-  // pied en spirale chromée autour de l'escalier de plateaux
-  const hp=t=>{const a=2.2+t*Math.PI*2.6;return new THREE.Vector3(Math.cos(a)*A,-PED+t*Ht,Math.sin(a)*B)};
-  const pts=[];for(let i=0;i<=140;i++)pts.push(hp(i/140));
-  boardGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),360,.08,12,false),CH));
-  // un bras par plateau principal, jusqu'au bord le plus proche
-  for(const b of MAINS){const Y=YZ(b.z),P=hp((Y-.1+PED)/Ht),zmin=4.5-(b.y0+3)-.7,zmax=4.5-b.y0+.7;
-    const Q=new THREE.Vector3(Math.max(-2.2,Math.min(2.2,P.x)),Y-.1,Math.max(zmin,Math.min(zmax,P.z)));rod(new THREE.Vector3(P.x,Y-.1,P.z),Q,.065,CH);
-    const k=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),CH);k.position.copy(P).setY(Y-.1);boardGroup.add(k)}
-  // tenons aux 4 coins de chaque plateau principal ; un plateau d'attaque posé dessus a sa tige
-  for(const p of PINS){const X=(p.x0+.5-2.5)*S,Z=(4.5-(p.y0+.5))*S,Y0=YZ(2*p.i)-.12;
-    const on=ST.bd.some(b=>b.x0==p.x0&&b.y0==p.y0&&b.z==p.z);
-    rod(new THREE.Vector3(X,Y0,Z),new THREE.Vector3(X,on?YZ(p.z)-.2:Y0+.42,Z),on?.07:.05,CH);
-    const cap=new THREE.Mesh(new THREE.SphereGeometry(on?.1:.075,14,10),CH);cap.position.set(X,on?YZ(p.z)-.2:Y0+.42,Z);boardGroup.add(cap)}
-  const base=new THREE.Mesh(new THREE.CylinderGeometry(5.6,5.9,.28,64),chrome(0xc9d0da,160));base.position.y=-PED-.2;boardGroup.add(base);
-  const rim=new THREE.Mesh(new THREE.TorusGeometry(5.65,.06,10,96),chrome(0xffffff,220));rim.rotation.x=Math.PI/2;rim.position.y=-PED-.05;boardGroup.add(rim)}
+function mkBoard(z){
+  const Y=z*GAP;
+  const fr=new THREE.Mesh(new THREE.ExtrudeGeometry(rrShape(5*S+.4,5*S+.4,.1),{depth:.05,bevelEnabled:true,bevelSize:.025,bevelThickness:.025,bevelSegments:2}),frameMat);
+  fr.rotation.x=-Math.PI/2;fr.position.set(0,Y-.13,0);boardGroup.add(fr);
+  for(let x=0;x<5;x++)for(let y=0;y<5;y++){const base=(x+y+z)%2?LIGHT:DARK;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(S*.97,.07,S*.97),new THREE.MeshStandardMaterial({color:base,roughness:.45,metalness:.03,emissive:base,emissiveIntensity:.12,transparent:true,opacity:.88}));
+    m.position.copy(wp(x,y,z));m.position.y-=.02;m.userData={x,y,z,base,bd:null};boardGroup.add(m);cellMeshes.push(m)}
+  for(let x=0;x<5;x++)flat(FILES[x],(x-2)*S,Y+.02,2.5*S+.34,.26);
+  for(let y=0;y<5;y++)flat(String(y+1),-(2.5*S+.34),Y+.02,(2-y)*S,.26);
+  const L=new THREE.Sprite(new THREE.SpriteMaterial({map:txt(LV[z],'#2b2b30',120),transparent:true,depthTest:false}));
+  L.position.set(-3.7,Y+.3,0);L.scale.set(1.1,1.1,1);boardGroup.add(L)}
+function buildBoards(){boardGroup.clear();cellMeshes.length=0;frameMeshes.length=0;for(let z=0;z<5;z++)mkBoard(z)}
 // pieces
-const LN={P:'Pion',R:'Tour',N:'Cavalier',B:'Fou',Q:'Dame',K:'Roi'};
+const LN={P:'Pion',R:'Tour',N:'Cavalier',B:'Fou',U:'Licorne',Q:'Dame',K:'Roi'};
 function lathe(pts){return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),24)}
 const MATS={w:{body:new THREE.MeshPhongMaterial({color:0xe6eaf0,specular:0xffffff,shininess:110}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})},
  b:{body:new THREE.MeshPhongMaterial({color:0x1b1e24,specular:0x9aa3b2,shininess:90}),trim:new THREE.MeshStandardMaterial({color:GOLD,roughness:.3,metalness:.85})}};
@@ -450,6 +426,29 @@ NEW.K=(add,M)=>{
   add(new THREE.BoxGeometry(.05,.24,.05),1.55,M.trim);
   add(new THREE.BoxGeometry(.17,.05,.05),1.58,M.trim);
 }//endK
+NEW.U=(add,M,g)=>{
+  plinth(add,M,.35);
+  add(prof([[0,.1],[.28,.12],[.21,.22],[.15,.45],[.16,.64]]));
+  ring(add,M,.4,.165,.014);
+  add(lathe([[0,.6],[.2,.6],[.21,.65],[.13,.71],[0,.72]]));
+  ring(add,M,.655,.21,.014);
+  // tête : museau allongé vers l'avant (-z), légèrement baissé
+  const hd=new THREE.Group();hd.position.set(0,.85,-.02);hd.rotation.x=.25;g.add(hd);
+  const sk=new THREE.Mesh(new THREE.SphereGeometry(.15,32,24),M.body);sk.scale.set(.9,1,1.55);sk.position.z=-.06;hd.add(sk);
+  const mz=new THREE.Mesh(new THREE.SphereGeometry(.09,24,16),M.body);mz.scale.set(.9,.9,1.2);mz.position.set(0,-.04,-.27);hd.add(mz);
+  for(const sd of[-1,1]){
+    const e=new THREE.Mesh(new THREE.SphereGeometry(.026,12,10),M.trim);e.position.set(sd*.125,.03,-.12);hd.add(e);
+    const ea=new THREE.Mesh(new THREE.ConeGeometry(.04,.14,12),M.body);ea.position.set(sd*.07,.17,.06);ea.rotation.x=.4;hd.add(ea);
+  }
+  // corne : cône nacré + spirale dorée
+  const hg=new THREE.Group();hg.position.set(0,.13,-.14);hg.rotation.x=-.55;hd.add(hg);
+  const horn=new THREE.Mesh(new THREE.ConeGeometry(.05,.55,24),M.body);horn.position.y=.275;hg.add(horn);
+  const pts=[];for(let i=0;i<=120;i++){const t=i/120;const r=.052*(1-t)+.004;pts.push(new THREE.Vector3(Math.cos(t*Math.PI*10)*r,t*.55,Math.sin(t*Math.PI*10)*r))}
+  hg.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),160,.009,6,false),M.trim));
+  // crinière dorée
+  for(let i=0;i<5;i++){const m=add(new THREE.SphereGeometry(.05-.006*i,12,10),.78-i*.09,M.trim);m.position.z=.12+i*.025;}
+}
+
 //@@NEW
 function makePiece(t,side){
   const M=MATS[side];const mat=M.body;
@@ -502,65 +501,64 @@ $('swap').onclick=()=>{if(botOn()||net)return;if(hist.length&&!over&&!confirm('I
 $('elo-reset').onclick=e=>{e.preventDefault();players.w.elo=players.b.elo=1200;players.w.g=players.b.g=0;deltas={w:null,b:null};store.set('c3d-players',players);renderPlayers()};
 // ---------- règles illustrées ----------
 const RULES=[
- ['K','Roi',['1 case','Tout niveau'],'Une case dans n\u2019importe quelle direction, vue de dessus, et sur le niveau de son choix. À protéger à tout prix.'],
- ['Q','Dame',['Glisse','Lignes + diagonales'],'Tour et fou réunis. Elle glisse vue de dessus et peut s\u2019arrêter sur n\u2019importe quel niveau de la case d\u2019arrivée.'],
- ['R','Tour',['Glisse','Colonne / rangée'],'En ligne droite le long d\u2019une colonne ou d\u2019une rangée. Elle passe au-dessus du vide, mais une pièce sur sa route, quel que soit le niveau, l\u2019arrête.'],
- ['B','Fou',['Glisse','Diagonale'],'En diagonale vue de dessus, d\u2019un plateau à l\u2019autre. Une pièce sur sa route, à n\u2019importe quel niveau, l\u2019arrête.'],
- ['N','Cavalier',['Saute','2 + 1'],'En L vue de dessus (deux cases puis une), vers n\u2019importe quel niveau. Il saute par-dessus tout.'],
- ['P','Pion',['1 case','Promotion'],'Avance d\u2019une rangée vers l\u2019adversaire et prend en diagonale vers l\u2019avant, sur le niveau de son choix. Devient dame quand il ne peut plus avancer.']];
+ ['K','Roi',['1 case','26 directions'],'Une case dans n\u2019importe quelle direction : colonne, rangée ou niveau, en ligne ou en diagonale. À protéger à tout prix.'],
+ ['Q','Dame',['Glisse','Toutes directions'],'La plus puissante : tour, fou et licorne réunis, en ligne droite ou en diagonale, sur les trois dimensions.'],
+ ['R','Tour',['Glisse','3 axes'],'En ligne droite le long d\u2019une colonne, d\u2019une rangée ou d\u2019un niveau (monter ou descendre).'],
+ ['B','Fou',['Glisse','Diagonale plane'],'En diagonale dans un plan : colonne et rangée, rangée et niveau, ou colonne et niveau.'],
+ ['U','Licorne',['Glisse','Triagonale'],'La pièce propre au jeu 3D : diagonale à travers les trois axes à la fois, d\u2019étage en étage.'],
+ ['N','Cavalier',['Saute','2 + 1'],'Deux cases dans une direction puis une dans une autre, niveaux compris. Il saute par-dessus toutes les pièces.'],
+ ['P','Pion',['1 case','Promotion'],'Avance d\u2019une case vers l\u2019adversaire, en rangée ou en niveau. Prend en diagonale vers l\u2019avant. Devient dame au dernier rang ou au dernier niveau.']];
 function thumbs(){const out={};let r;try{r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(2);r.setSize(128,160);
   const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x556677,1.4));const l=new THREE.DirectionalLight(0xffffff,1.6);l.position.set(3,5,4);sc.add(l);
   const c=new THREE.PerspectiveCamera(28,128/160,.1,50);const H={P:.95,R:.95,N:1.12,B:1.35,U:1.2,Q:1.45,K:1.7};
   for(const [t] of RULES){const o=makePiece(t,'w');o.rotation.y=.9;sc.add(o);const h=H[t];c.position.set(0,h*.5+.55,h*2.95);c.lookAt(0,h*.48,0);r.render(sc,c);out[t]=r.domElement.toDataURL();sc.remove(o)}
   r.dispose()}catch(e){}return out}
-const STEPS='<div class="steps"><div class="stp"><i>1</i><b>Le but</b><span>Mettre le roi adverse en échec et mat. Tu joues les Blancs, en bas.</span></div><div class="stp"><i>2</i><b>Un coup par tour</b><span>Tu déplaces une pièce, ou un plateau d’attaque. Puis c’est à l’adversaire.</span></div><div class="stp"><i>3</i><b>Vue de dessus</b><span>Chaque pièce bouge comme aux échecs classiques, mais peut atterrir sur n’importe quel niveau de la case visée.</span></div><div class="stp"><i>4</i><b>Plateaux d’attaque</b><span>Les petits plateaux 2×2 se déplacent sur un tenon libre voisin, avec leurs pièces.</span></div></div>';
+const STEPS='<div class="steps"><div class="stp"><i>1</i><b>Le but</b><span>Mettre le roi adverse en échec et mat. Tu joues les Blancs, en bas.</span></div><div class="stp"><i>2</i><b>Un coup par tour</b><span>Tu déplaces une pièce, ou un plateau d’attaque. Puis c’est à l’adversaire.</span></div><div class="stp"><i>3</i><b>Trois dimensions</b><span>Les pièces avancent comme aux échecs, mais aussi vers le haut et vers le bas : on change d’étage.</span></div><div class="stp"><i>4</i><b>La licorne</b><span>Cette pièce glisse en diagonale à travers les trois axes à la fois. Les cases s’écrivent niveau + colonne + rangée, par exemple <b>Bc3</b>.</span></div></div>';
 function buildRules(){const th=thumbs();
-  const html='<div class="rhero"><h3>Échecs à trois dimensions</h3><p>Trois plateaux 4×4 posés en escalier et quatre plateaux d\u2019attaque 2×2 sur des tenons, comme dans la série Star Trek. On raisonne vue de dessus : chaque pièce bouge comme aux échecs classiques, puis se pose sur le niveau de son choix. Une case s\u2019écrit colonne + rangée + niveau, par exemple <b>b2⁰</b>.</p><div class="chips"><span class="chip">Colonnes z–e</span><span class="chip">Rangées 0–9</span><span class="chip">Niveaux 0–5</span></div></div>'+
+  const html='<div class="rhero"><h3>Échecs à trois dimensions</h3><p>Cinq plateaux 5×5 superposés (niveaux A à E), soit 125 cases. Une case s\u2019écrit niveau + colonne + rangée, par exemple <b>Bc3</b>.</p><div class="chips"><span class="chip">Niveaux A–E</span><span class="chip">Colonnes a–e</span><span class="chip">Rangées 1–5</span></div></div>'+
   '<div class="rgrid">'+RULES.map(([t,n,tg,d])=>'<div class="rc"><div class="th">'+(th[t]?'<img alt="'+n+'" src="'+th[t]+'">':'')+'</div><div><h4>'+n+'</h4><p>'+d+'</p><div class="tg">'+tg.map((x,i)=>'<i class="'+(i?'g':'')+'">'+x+'</i>').join('')+'</div></div></div>').join('')+
-  '<div class="rc"><div class="th" style="font-size:34px;color:#8fd3e6">▦</div><div><h4>Plateaux d\u2019attaque</h4><p>Quatre plateaux 2×2 posés sur des tenons aux coins des grands plateaux. À ton tour, au lieu de jouer une pièce, tu peux déplacer un plateau que tu contrôles vers un tenon libre voisin : autre coin du même plateau, plateau voisin, ou de l\u2019autre côté. Les pièces dessus le suivent. Passe par l\u2019onglet Plateaux ou clique sur son cadre.</p><div class="tg"><i>Mobile</i><i class="g">2×2</i></div></div></div></div>'+
-  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Les règles n\u2019ont jamais été fixées à l\u2019écran dans la série : cette version suit des règles de fans simplifiées (pas de roque ni de prise en passant). Un pat donne une partie nulle.</div>';$('rules').innerHTML=html;$('rules-page').innerHTML=STEPS+html}
+  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Pas de roque ni de prise en passant. Un pat donne une partie nulle.</div>';$('rules').innerHTML=html;$('rules-page').innerHTML=STEPS+html}
 // ---------- état du jeu ----------
 let ST,turn,sel,legal,over,pieceObjs=[],hist=[],selB=null,slots=[];
 let puzzleMode=false,puzErr=0,puzHome=false,puzMsg='',saved=null;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const key=(x,y,z)=>x+','+y+','+z;
 const kx=k=>[k.charCodeAt(0)-48,k.charCodeAt(2)-48,k.charCodeAt(4)-48];
-const in2=(x,y)=>x>=0&&x<6&&y>=0&&y<10;
-function cellsOf(St){if(St.c)return St.c;const c=new Set(),pj=new Map();
-  const add=(x,y,z)=>{c.add(key(x,y,z));const p=x+','+y;if(!pj.has(p))pj.set(p,[]);pj.get(p).push(z)};
-  for(const b of MAINS)for(let a=0;a<4;a++)for(let d=0;d<4;d++)add(b.x0+a,b.y0+d,b.z);
-  for(const b of St.bd)for(let a=0;a<2;a++)for(let d=0;d<2;d++)add(b.x0+a,b.y0+d,b.z);
-  c.pj=pj;St.c=c;return c}
-const levels=(St,x,y)=>cellsOf(St).pj.get(x+','+y)||[];
+const inGrid=(x,y,z)=>x>=0&&x<5&&y>=0&&y<5&&z>=0&&z<5;
+function cellsOf(St){return CELLS}
+const CELLS=new Set();for(let x=0;x<5;x++)for(let y=0;y<5;y++)for(let z=0;z<5;z++)CELLS.add(key(x,y,z));
 function newState(){
-  const m=new Map();
-  const W=[[1,1,0,'N'],[2,1,0,'B'],[3,1,0,'B'],[4,1,0,'N'],[1,2,0,'P'],[2,2,0,'P'],[3,2,0,'P'],[4,2,0,'P'],
-           [0,0,1,'R'],[1,0,1,'Q'],[0,1,1,'P'],[1,1,1,'P'],[4,0,1,'K'],[5,0,1,'R'],[4,1,1,'P'],[5,1,1,'P']];
-  for(const [x,y,z,t] of W){m.set(key(x,y,z),{t,s:'w'});m.set(key(x,9-y,z+4),{t,s:'b'})}
-  return {m,bd:[{id:'B1',own:'w',x0:0,y0:0,z:1},{id:'B2',own:'w',x0:4,y0:0,z:1},{id:'N1',own:'b',x0:0,y0:8,z:5},{id:'N2',own:'b',x0:4,y0:8,z:5}]}}
-// ---------- déplacements : on raisonne vue de dessus (règle de la série) ----------
-// une pièce bouge comme aux échecs classiques sur la projection, et arrive sur n'importe quel niveau de la case visée ;
-// une pièce sur la trajectoire, à n'importe quel niveau, bloque les pièces qui glissent.
-const ORTH=[[1,0],[-1,0],[0,1],[0,-1]],DG=[[1,1],[1,-1],[-1,1],[-1,-1]],KG=[...ORTH,...DG],KN=[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
-function land(St,x,y,s,out,mode){for(const z of levels(St,x,y)){const o=St.m.get(key(x,y,z));if(o?(o.s!=s&&mode!=1):mode!=2)out.push([x,y,z])}} // mode 1 : sans prise, 2 : prise seule
-const busy=(St,x,y)=>levels(St,x,y).some(z=>St.m.has(key(x,y,z)));
-function slide(St,x,y,dirs,s,out){for(const [dx,dy] of dirs){let a=x+dx,c=y+dy;while(in2(a,c)){land(St,a,c,s,out,0);if(busy(St,a,c))break;a+=dx;c+=dy}}}
+  const m=new Map(),b0='RNKNR',b1='BUQUB';
+  for(let x=0;x<5;x++){m.set(key(x,0,0),{t:b0[x],s:'w'});m.set(key(x,0,1),{t:b1[x],s:'w'});m.set(key(x,1,0),{t:'P',s:'w'});m.set(key(x,1,1),{t:'P',s:'w'});
+    m.set(key(x,4,4),{t:b0[x],s:'b'});m.set(key(x,4,3),{t:b1[x],s:'b'});m.set(key(x,3,4),{t:'P',s:'b'});m.set(key(x,3,3),{t:'P',s:'b'})}
+  return {m,bd:[]}}
+// ---------- déplacements (échecs 3D 5×5×5) ----------
+const AX=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]],D1=[-1,0,1];
+const DIAG=[],TRI=[],ALL=[],KN=[];
+for(const a of D1)for(const b of D1)for(const c of D1){const n=Math.abs(a)+Math.abs(b)+Math.abs(c);if(n==2)DIAG.push([a,b,c]);if(n==3)TRI.push([a,b,c]);if(n)ALL.push([a,b,c])}
+for(let i=0;i<3;i++)for(let j=0;j<3;j++){if(i==j)continue;for(const a of[-2,2])for(const c of[-1,1]){const v=[0,0,0];v[i]=a;v[j]=c;KN.push(v)}}
+function slide(St,x,y,z,dirs,s,out){for(const d of dirs){let a=x+d[0],c=y+d[1],e=z+d[2];
+  while(inGrid(a,c,e)){const o=St.m.get(key(a,c,e));if(o){if(o.s!=s)out.push([a,c,e]);break}out.push([a,c,e]);a+=d[0];c+=d[1];e+=d[2]}}}
 function pseudo(St,x,y,z){const p=St.m.get(key(x,y,z)),s=p.s,out=[];
+  const step=dirs=>{for(const d of dirs){const a=x+d[0],c=y+d[1],e=z+d[2];if(!inGrid(a,c,e))continue;const o=St.m.get(key(a,c,e));if(!o||o.s!=s)out.push([a,c,e])}};
   switch(p.t){
-    case 'R':slide(St,x,y,ORTH,s,out);break;
-    case 'B':slide(St,x,y,DG,s,out);break;
-    case 'Q':slide(St,x,y,KG,s,out);break;
-    case 'K':for(const [dx,dy] of KG)if(in2(x+dx,y+dy))land(St,x+dx,y+dy,s,out,0);break;
-    case 'N':for(const [dx,dy] of KN)if(in2(x+dx,y+dy))land(St,x+dx,y+dy,s,out,0);break;
-    case 'P':{const f=s=='w'?1:-1;if(in2(x,y+f))land(St,x,y+f,s,out,1);for(const l of[-1,1])if(in2(x+l,y+f))land(St,x+l,y+f,s,out,2);break}}
+    case 'R':slide(St,x,y,z,AX,s,out);break;
+    case 'B':slide(St,x,y,z,DIAG,s,out);break;
+    case 'U':slide(St,x,y,z,TRI,s,out);break;
+    case 'Q':slide(St,x,y,z,[...AX,...DIAG,...TRI],s,out);break;
+    case 'K':step(ALL);break;
+    case 'N':step(KN);break;
+    case 'P':{const f=s=='w'?1:-1;
+      for(const ax of[1,2]){const v=[x,y,z];v[ax]+=f;if(inGrid(...v)&&!St.m.get(key(...v)))out.push(v)}
+      for(const ax of[1,2])for(const lat of[0,1,2]){if(lat==ax)continue;for(const l of[-1,1]){const v=[x,y,z];v[ax]+=f;v[lat]+=l;if(inGrid(...v)){const o=St.m.get(key(...v));if(o&&o.s!=s)out.push(v)}}}
+      break}}
   return out}
 function findK(St,s){for(const [k,p] of St.m)if(p.t=='K'&&p.s==s)return kx(k)}
 function attacked(St,pos,by){for(const [k,p] of St.m){if(p.s!=by)continue;const [x,y,z]=kx(k);
-  if(p.t=='P'){if(y+(by=='w'?1:-1)==pos[1]&&Math.abs(x-pos[0])==1)return true}
-  else if(p.t=='N'||p.t=='K'){const dx=Math.abs(x-pos[0]),dy=Math.abs(y-pos[1]);if(p.t=='K'?(dx<=1&&dy<=1&&dx+dy>0):dx*dy==2)return true}
+  if(p.t=='P'){const f=by=='w'?1:-1;for(const ax of[1,2])for(const lat of[0,1,2]){if(lat==ax)continue;for(const l of[-1,1]){const v=[x,y,z];v[ax]+=f;v[lat]+=l;if(v[0]==pos[0]&&v[1]==pos[1]&&v[2]==pos[2])return true}}}
   else for(const m of pseudo(St,x,y,z))if(m[0]==pos[0]&&m[1]==pos[1]&&m[2]==pos[2])return true}return false}
 function applyP(St,f,t){const m=new Map(St.m);const p=m.get(key(...f));m.delete(key(...f));
-  const q={...p};if(p.t=='P'&&!levels(St,t[0],t[1]+(p.s=='w'?1:-1)).length)q.t='Q';m.set(key(...t),q);return {m,bd:St.bd,c:St.c}}
+  const q={...p};if(p.t=='P'&&((p.s=='w'&&(t[1]==4||t[2]==4))||(p.s=='b'&&(t[1]==0||t[2]==0))))q.t='Q';m.set(key(...t),q);return {m,bd:St.bd,c:St.c}}
 function applyB(St,b,x0,y0,z){const dx=x0-b.x0,dy=y0-b.y0,dz=z-b.z;const m=new Map(St.m),mv=[];
   for(let a=0;a<2;a++)for(let c=0;c<2;c++){const k=key(b.x0+a,b.y0+c,b.z),p=m.get(k);if(p){mv.push([b.x0+a+dx,b.y0+c+dy,b.z+dz,p]);m.delete(k)}}
   for(const [x,y,zz,p] of mv)m.set(key(x,y,zz),p);
@@ -579,8 +577,8 @@ function isLegal(St,m,s){const n=applyMove(St,m);const k=findK(n,s);return !!k&&
 function legalAll(St,s){const out=[];
   for(const [k,p] of St.m)if(p.s==s){const [x,y,z]=kx(k);for(const t of pseudo(St,x,y,z)){const m={k:'p',f:[x,y,z],t};if(isLegal(St,m,s))out.push(m)}}
   for(const m of boardMoves(St,s))if(isLegal(St,m,s))out.push(m);return out}
-const SUP='⁰¹²³⁴⁵',FR={K:'R',Q:'D',R:'T',B:'F',N:'C',P:''};
-const sq=c=>FILES[c[0]]+c[1]+SUP[c[2]];
+const FR={K:'R',Q:'D',R:'T',B:'F',U:'L',N:'C',P:''};
+const sq=c=>LV[c[2]]+FILES[c[0]]+(c[1]+1);
 function renderHist(){const o=$('hist');if(!hist.length){o.innerHTML='<div class="empty">Aucun coup joué pour l’instant.<br>Les Blancs commencent.</div>';return}
   const rows=[];for(const h of hist){if(h.s=='w'||!rows.length||'b' in rows[rows.length-1])rows.push({});rows[rows.length-1][h.s]=h.txt}
   const ls=hist[hist.length-1].s,R=rows.length-1;
@@ -589,16 +587,16 @@ function renderHist(){const o=$('hist');if(!hist.length){o.innerHTML='<div class
 function undo(){if(net){ui('Pas d’annulation en ligne');return}if(puzzleMode||!hist.length||thinking)return;if(over){if(!botOn()&&eloDone)return;over=false}let h;do{h=hist.pop();ST=h.before;turn=h.s}while(botOn()&&turn!='w'&&hist.length);$('endc').classList.remove('on');sel=null;legal=[];selB=null;slots=[];sync();ui();renderHist();paint()}
 function ui(msg){if(puzHome&&document.body.dataset.view=='home'){puzMsg=msg||'';const pm=document.getElementById('pz-msg');if(pm)pm.textContent=msg||'Clique une pièce blanche, puis la case où elle va.'}
   $('turn').textContent=over?'Partie terminée':turn=='w'?'Blancs':'Noirs';$('dot').className='dot '+turn;$('msg').textContent=msg||'';$('mode').textContent=net?'en ligne':botOn()?'contre bot '+BOT[botLvl].n.toLowerCase():'à deux';renderPlayers()}
-const GLW={Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙'},INI={Q:1,R:2,B:2,N:2,P:8},GL={Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'},PV={Q:9,R:5,B:3,N:3,P:1};
+const GLW={Q:'♕',R:'♖',B:'♗',U:'✧',N:'♘',P:'♙'},INI={Q:1,R:2,B:2,U:2,N:2,P:10},GL={Q:'♛',R:'♜',B:'♝',U:'✦',N:'♞',P:'♟'},PV={Q:9,R:5,B:3,U:4,N:3,P:1};
 function renderCaps(){if(!ST)return;const cnt={w:{},b:{}};for(const p of ST.m.values())cnt[p.s][p.t]=(cnt[p.s][p.t]||0)+1;
   const mat={w:0,b:0};for(const s of['w','b'])for(const t in PV)mat[s]+=(cnt[s][t]||0)*PV[t];
-  for(const s of['w','b']){const o=s=='w'?'b':'w';let h='';for(const t of'QRBNP')for(let i=cnt[o][t]||0;i<INI[t];i++)h+=(o=='w'?GLW:GL)[t];const d=mat[s]-mat[o];$('cap-'+s).innerHTML=h+(d>0?'<em>+'+d+'</em>':'')}}
+  for(const s of['w','b']){const o=s=='w'?'b':'w';let h='';for(const t of'QRBUNP')for(let i=cnt[o][t]||0;i<INI[t];i++)h+=(o=='w'?GLW:GL)[t];const d=mat[s]-mat[o];$('cap-'+s).innerHTML=h+(d>0?'<em>+'+d+'</em>':'')}}
 const BDN={B1:'Attaque blanche, côté dame',B2:'Attaque blanche, côté roi',N1:'Attaque noire, côté dame',N2:'Attaque noire, côté roi'};
 function renderBoardsList(){const o=$('bdlist');if(!o||!ST||!ST.bd||puzzleMode)return;
   o.innerHTML=ST.bd.map(b=>{const c=controller(ST,b),can=!over&&c==turn&&!thinking&&!(botOn()&&turn=='b')&&!(net&&turn!=net.me);
     return '<div class="bdi '+b.own+(selB==b.id?' on':'')+'"><div class="sw"><i></i><i></i><i></i><i></i></div><div class="t">'+b.id+' · '+BDN[b.id]+'<small>Cases '+FILES[b.x0]+FILES[b.x0+1]+' '+b.y0+'–'+(b.y0+1)+', niveau '+b.z+' · '+(c?'contrôlé par les '+(c=='w'?'Blancs':'Noirs'):'disputé')+'</small></div>'+(can?'<button class="btn sm" data-b="'+b.id+'">'+(selB==b.id?'Annuler':'Déplacer')+'</button>':'')+'</div>'}).join('');
   o.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{if(selB==x.dataset.b){selB=null;slots=[];ui();paint()}else selBoard(x.dataset.b)})}
-$('lvls').innerHTML=[[5,'Attaque haute','plateaux noirs au départ',1],[4,'Plateau des Noirs','rangées 5–8',0],[3,'Attaque milieu','',1],[2,'Plateau neutre','rangées 3–6',0],[1,'Attaque basse','plateaux blancs au départ',1],[0,'Plateau des Blancs','rangées 1–4',0]].map(([n,t,s,a])=>'<div class="lvr '+(a?'at':'mn')+'"><b>'+n+'</b>'+t+'<span>'+s+'</span></div>').join('');
+$('lvls').innerHTML=[['E','Noirs','tours, cavaliers, roi'],['D','Noirs','fous, licornes, dame'],['C','Neutre','vide au départ'],['B','Blancs','fous, licornes, dame'],['A','Blancs','tours, cavaliers, roi']].map(([n,w,t])=>'<div class="lvr mn"><b>'+n+'</b>'+w+'<span>'+t+'</span></div>').join('');
 function showEnd(res,how){const bot=botOn();let t,ic;
   if(res=='d'){t='Partie nulle';ic='½'}else if(bot||net){t=res==(net?net.me:'w')?'Victoire !':'Défaite';ic=res=='w'?'♔':'♚'}else{t=pname(res)+' gagne';ic=res=='w'?'♔':'♚'}
   $('end-ic').textContent=ic;$('end-t').textContent=t;$('end-s').textContent=how+' · '+hist.length+' coups';
@@ -659,10 +657,10 @@ function play(x,y,z){const p=ST.m.get(key(x,y,z));
   else{sel=null;legal=[];selB=null;slots=[]}
   paint()}
 // ---------- bot ----------
-const VAL={P:100,N:320,B:330,R:500,Q:900,K:20000};
+const VAL={P:100,N:320,B:330,U:360,R:500,Q:900,K:20000};
 function evalB(St){let sc=0;for(const [k,p] of St.m){const [x,y,z]=kx(k);let v=VAL[p.t];
-  if(p.t!='K')v+=(7-Math.abs(x-2.5)-Math.abs(y-4.5)*.8)*3;
-  if(p.t=='P')v+=(p.s=='w'?y:9-y)*9;
+  if(p.t!='K')v+=(7-Math.abs(x-2)-Math.abs(y-2)-Math.abs(z-2)*.7)*3;
+  if(p.t=='P')v+=(p.s=='w'?y+z:8-y-z)*5;
   sc+=p.s=='b'?v:-v}return sc}
 function allMoves(St,s){const out=[];
   for(const [k,p] of St.m)if(p.s==s){const [x,y,z]=kx(k);for(const t of pseudo(St,x,y,z)){const c=St.m.get(key(t[0],t[1],t[2]));out.push({k:'p',f:[x,y,z],t,sc:c?VAL[c.t]*10-VAL[p.t]:0})}}
@@ -684,7 +682,7 @@ document.getElementById('undo').onclick=undo;
 $('mode').title='Changer d’adversaire';$('mode').style.cursor='pointer';$('mode').onclick=()=>{if(net){netOpen();return}const o=[1,2,3,0],n=o[(o.indexOf(botLvl)+1)%4];if(hist.length&&!over&&!confirm('Changer d’adversaire et recommencer la partie ?'))return;$('opp').value=String(n);$('opp').onchange({target:$('opp')})};
 const goCam=(a,e,d)=>{tw={a:a??(tw?tw.a:az),e:e??(tw?tw.e:el),d:d??(tw?tw.d:dist)}};
 $('v-l').onclick=()=>goCam((tw?tw.a:az)+Math.PI/4);$('v-r').onclick=()=>goCam((tw?tw.a:az)-Math.PI/4);$('v-top').onclick=()=>goCam(Math.round(az/(Math.PI/2))*Math.PI/2,1.38);$('v-side').onclick=()=>goCam(Math.PI/2,.1);
-$('v-home').onclick=()=>{zoomed=false;const d=Math.max(26,16/Math.min(cam.aspect,1.6)*1.1);goCam(az-Math.round((az-homeAz())/(2*Math.PI))*2*Math.PI,.42,d)};$('v-in').onclick=()=>{zoomed=true;goCam(null,null,Math.max(8,(tw?tw.d:dist)-3))};$('v-out').onclick=()=>{zoomed=true;goCam(null,null,Math.min(40,(tw?tw.d:dist)+3))};
+$('v-home').onclick=()=>{zoomed=false;const d=Math.max(25,17/Math.min(cam.aspect,1.6)*1.1);goCam(az-Math.round((az-homeAz())/(2*Math.PI))*2*Math.PI,.5,d)};$('v-in').onclick=()=>{zoomed=true;goCam(null,null,Math.max(8,(tw?tw.d:dist)-3))};$('v-out').onclick=()=>{zoomed=true;goCam(null,null,Math.min(40,(tw?tw.d:dist)+3))};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>newGame();
 window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
@@ -699,7 +697,7 @@ function buildRank(){const rows=rankRows();
   $('rank-list').innerHTML=rows.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><span class="n">'+(i+1)+'</span><div class="nm">'+r.n.replace(/</g,'&lt;')+(r.me?' (toi)':'')+'<small>'+r.sub+'</small></div><span class="e">'+r.e+'</span></div>').join('')}
 
 // ---------- puzzle du jour, classement, parties ----------
-const PUZZLES=[[[3,8,4,"K","w"],[4,3,2,"Q","w"],[1,1,0,"R","w"],[1,8,4,"N","w"],[3,6,4,"K","b"]],[[4,1,0,"K","w"],[1,8,5,"Q","w"],[1,1,0,"R","w"],[3,6,4,"B","w"],[5,9,5,"K","b"],[4,2,0,"P","b"],[1,0,1,"N","b"]],[[3,3,0,"K","w"],[2,4,0,"Q","w"],[4,4,2,"R","w"],[4,1,1,"N","w"],[2,6,4,"P","w"],[3,1,0,"K","b"],[1,5,2,"R","b"]],[[1,0,1,"K","w"],[2,5,4,"Q","w"],[4,4,0,"R","w"],[3,1,0,"B","w"],[5,1,1,"K","b"]],[[1,4,2,"K","w"],[3,2,0,"Q","w"],[2,5,2,"R","w"],[1,9,5,"N","w"],[2,6,4,"P","w"],[4,6,2,"K","b"],[1,5,2,"N","b"]],[[2,3,2,"K","w"],[5,1,1,"Q","w"],[1,8,4,"R","w"],[1,7,4,"P","w"],[4,9,5,"K","b"]],[[4,1,0,"K","w"],[4,3,2,"Q","w"],[0,9,5,"R","w"],[1,5,2,"B","w"],[4,8,4,"N","w"],[3,4,0,"P","w"],[3,8,4,"K","b"],[1,2,0,"P","b"]],[[3,5,4,"K","w"],[0,9,5,"Q","w"],[5,9,5,"R","w"],[1,1,0,"N","w"],[1,6,4,"P","w"],[2,8,4,"K","b"],[2,7,4,"R","b"],[4,3,0,"R","b"]],[[2,5,2,"K","w"],[1,2,0,"Q","w"],[2,8,4,"R","w"],[5,9,5,"B","w"],[3,8,4,"N","w"],[0,0,1,"K","b"]],[[0,9,5,"K","w"],[5,9,5,"Q","w"],[4,6,4,"R","w"],[2,6,4,"B","w"],[2,8,4,"K","b"],[4,2,0,"N","b"]],[[2,6,4,"K","w"],[3,3,2,"Q","w"],[4,9,5,"R","w"],[4,6,2,"P","w"],[4,1,1,"K","b"],[5,0,1,"R","b"]],[[2,7,4,"K","w"],[4,5,2,"Q","w"],[1,1,1,"R","w"],[1,3,0,"N","w"],[1,5,2,"P","w"],[5,9,5,"K","b"]],[[3,4,0,"K","w"],[5,9,5,"Q","w"],[3,3,0,"R","w"],[4,6,2,"P","w"],[3,6,2,"K","b"],[2,5,2,"R","b"],[5,0,1,"R","b"]],[[2,2,0,"K","w"],[1,4,0,"Q","w"],[0,1,1,"K","b"]],[[2,5,4,"K","w"],[4,0,1,"Q","w"],[4,5,2,"R","w"],[5,8,5,"K","b"],[3,4,0,"P","b"],[4,1,1,"B","b"],[2,4,0,"P","b"]],[[2,5,4,"K","w"],[1,6,2,"Q","w"],[1,8,5,"N","w"],[3,7,4,"P","w"],[4,5,2,"K","b"],[3,5,4,"P","b"],[2,1,0,"N","b"]],[[2,1,0,"K","w"],[1,5,4,"Q","w"],[4,5,4,"R","w"],[5,1,1,"N","w"],[5,8,5,"K","b"]],[[4,2,0,"K","w"],[3,2,0,"Q","w"],[0,1,1,"R","w"],[0,8,5,"B","w"],[4,6,2,"N","w"],[2,8,4,"K","b"],[2,3,0,"P","b"]],[[4,6,4,"K","w"],[3,5,2,"Q","w"],[5,8,5,"R","w"],[0,9,5,"K","b"],[3,6,4,"P","b"]],[[3,1,0,"K","w"],[1,7,4,"Q","w"],[1,4,0,"R","w"],[3,5,4,"P","w"],[0,0,1,"K","b"],[1,4,2,"R","b"]],[[0,1,1,"K","w"],[1,4,2,"Q","w"],[4,0,1,"R","w"],[1,4,0,"K","b"],[2,5,4,"P","b"]],[[2,6,2,"K","w"],[2,3,0,"Q","w"],[4,5,2,"B","w"],[3,3,2,"N","w"],[3,7,4,"P","w"],[4,6,4,"K","b"],[4,3,0,"P","b"]],[[1,5,2,"K","w"],[3,4,2,"Q","w"],[4,6,2,"R","w"],[4,2,0,"B","w"],[1,3,2,"K","b"],[1,3,0,"P","b"]],[[4,7,4,"K","w"],[2,3,2,"Q","w"],[4,3,2,"R","w"],[3,1,0,"N","w"],[3,5,2,"K","b"],[1,8,5,"B","b"],[1,6,4,"B","b"],[4,6,2,"P","b"]],[[1,2,0,"K","w"],[2,7,4,"Q","w"],[1,5,2,"R","w"],[1,3,2,"B","w"],[1,0,1,"N","w"],[0,8,5,"K","b"]],[[4,3,2,"K","w"],[4,9,5,"Q","w"],[1,5,4,"R","w"],[0,8,5,"K","b"]],[[4,4,2,"K","w"],[1,5,2,"Q","w"],[2,8,4,"R","w"],[2,5,2,"P","w"],[0,0,1,"K","b"]],[[1,5,2,"K","w"],[0,0,1,"Q","w"],[4,0,1,"R","w"],[4,3,2,"B","w"],[3,3,2,"N","w"],[1,3,0,"K","b"]],[[4,2,0,"K","w"],[5,0,1,"Q","w"],[1,4,2,"R","w"],[3,7,4,"N","w"],[0,9,5,"K","b"]],[[1,4,2,"K","w"],[2,1,0,"Q","w"],[3,6,4,"R","w"],[4,0,1,"B","w"],[3,3,2,"P","w"],[4,2,0,"K","b"],[1,2,0,"P","b"],[3,6,2,"P","b"],[0,0,1,"B","b"]],[[1,0,1,"K","w"],[2,3,2,"Q","w"],[5,8,5,"B","w"],[2,6,4,"N","w"],[4,6,2,"K","b"]],[[1,0,1,"K","w"],[4,2,0,"Q","w"],[0,9,5,"R","w"],[2,5,4,"N","w"],[1,4,0,"P","w"],[5,0,1,"K","b"],[1,2,0,"P","b"],[3,4,2,"P","b"]],[[2,7,4,"K","w"],[4,3,0,"Q","w"],[3,4,0,"N","w"],[3,5,4,"P","w"],[4,3,2,"K","b"],[4,4,0,"P","b"],[0,8,5,"B","b"]],[[1,7,4,"K","w"],[1,4,0,"Q","w"],[4,6,4,"R","w"],[5,8,5,"B","w"],[0,9,5,"K","b"],[4,4,2,"P","b"],[3,5,2,"P","b"]],[[4,6,2,"K","w"],[1,8,4,"Q","w"],[2,6,2,"R","w"],[2,8,4,"B","w"],[1,6,4,"P","w"],[1,3,0,"K","b"]],[[4,8,4,"K","w"],[4,4,0,"Q","w"],[1,5,2,"R","w"],[1,3,2,"B","w"],[2,6,2,"P","w"],[0,9,5,"K","b"],[2,3,2,"R","b"],[4,4,2,"P","b"],[1,9,5,"N","b"]],[[2,4,2,"K","w"],[5,1,1,"Q","w"],[3,6,2,"R","w"],[0,0,1,"B","w"],[1,1,0,"N","w"],[4,7,4,"P","w"],[1,2,0,"K","b"],[1,8,4,"R","b"],[3,7,4,"P","b"],[0,9,5,"R","b"]],[[1,4,0,"K","w"],[5,9,5,"Q","w"],[2,8,4,"R","w"],[1,3,2,"N","w"],[3,1,0,"K","b"],[3,3,0,"R","b"],[1,5,2,"P","b"]],[[4,0,1,"K","w"],[4,5,2,"Q","w"],[1,1,1,"R","w"],[2,7,4,"P","w"],[0,8,5,"K","b"]],[[1,0,1,"K","w"],[4,4,2,"Q","w"],[2,5,4,"R","w"],[2,6,2,"N","w"],[1,4,2,"P","w"],[3,7,4,"K","b"]],[[1,5,4,"K","w"],[4,8,4,"Q","w"],[2,6,4,"B","w"],[2,1,0,"N","w"],[4,7,4,"P","w"],[2,7,4,"K","b"],[1,2,0,"B","b"],[4,5,4,"P","b"],[2,5,4,"B","b"]],[[4,3,2,"K","w"],[4,5,4,"Q","w"],[2,1,0,"R","w"],[3,6,2,"N","w"],[3,7,4,"P","w"],[0,0,1,"K","b"],[5,0,1,"N","b"],[2,7,4,"P","b"],[3,6,4,"B","b"]],[[1,9,5,"K","w"],[3,3,2,"Q","w"],[4,6,4,"R","w"],[3,6,2,"B","w"],[3,7,4,"K","b"],[1,4,2,"P","b"],[4,4,0,"P","b"],[4,4,2,"B","b"]],[[3,6,2,"K","w"],[4,8,4,"Q","w"],[1,4,2,"R","w"],[3,3,2,"P","w"],[0,9,5,"K","b"],[5,0,1,"N","b"],[4,6,2,"P","b"],[4,5,4,"R","b"]],[[2,8,4,"K","w"],[5,1,1,"Q","w"],[3,5,2,"R","w"],[1,4,2,"N","w"],[0,8,5,"K","b"],[3,8,4,"N","b"]]];
+const PUZZLES=[[[2,1,0,"K","w"],[1,2,3,"Q","w"],[2,4,2,"R","w"],[4,2,1,"K","b"]],[[0,2,4,"K","w"],[1,3,1,"Q","w"],[3,1,1,"R","w"],[1,2,3,"N","w"],[0,0,0,"K","b"],[3,3,0,"B","b"],[2,0,3,"R","b"],[2,4,1,"N","b"]],[[4,0,3,"K","w"],[2,2,4,"Q","w"],[3,0,0,"R","w"],[2,0,0,"B","w"],[2,4,3,"K","b"]],[[1,3,1,"K","w"],[3,0,0,"Q","w"],[4,2,1,"R","w"],[1,1,1,"P","w"],[0,0,2,"K","b"],[3,2,3,"P","b"]],[[2,2,1,"K","w"],[1,2,2,"Q","w"],[4,0,4,"R","w"],[2,4,0,"K","b"],[1,3,4,"N","b"]],[[1,0,0,"K","w"],[3,3,2,"Q","w"],[4,0,2,"R","w"],[0,3,3,"B","w"],[0,3,4,"K","b"]],[[1,0,4,"K","w"],[2,3,4,"Q","w"],[2,2,1,"R","w"],[2,4,0,"K","b"],[0,1,3,"P","b"],[1,2,2,"N","b"],[0,0,0,"N","b"]],[[2,2,4,"K","w"],[3,3,0,"Q","w"],[4,1,4,"R","w"],[3,0,1,"B","w"],[0,1,4,"N","w"],[3,0,2,"K","b"],[0,3,1,"R","b"],[3,4,0,"R","b"]],[[3,4,3,"K","w"],[4,0,1,"Q","w"],[2,3,1,"R","w"],[3,3,4,"B","w"],[1,4,1,"N","w"],[4,2,2,"K","b"]],[[4,3,0,"K","w"],[3,2,4,"Q","w"],[0,1,4,"R","w"],[0,4,3,"N","w"],[1,1,1,"P","w"],[2,4,3,"K","b"],[3,2,2,"P","b"]],[[3,4,1,"K","w"],[4,0,3,"Q","w"],[1,3,1,"R","w"],[2,4,4,"N","w"],[0,3,3,"P","w"],[4,4,4,"K","b"],[3,1,1,"B","b"]],[[3,1,2,"K","w"],[0,2,3,"Q","w"],[3,2,2,"R","w"],[0,2,0,"N","w"],[3,3,3,"P","w"],[2,0,4,"K","b"]],[[2,2,1,"K","w"],[4,0,4,"Q","w"],[0,1,4,"R","w"],[2,4,1,"N","w"],[1,1,1,"P","w"],[1,4,0,"K","b"],[0,1,3,"B","b"],[0,2,1,"N","b"],[4,1,0,"B","b"]],[[0,2,3,"K","w"],[3,1,1,"Q","w"],[0,2,0,"R","w"],[0,4,3,"B","w"],[0,0,3,"K","b"],[1,1,3,"N","b"]],[[1,4,3,"K","w"],[2,1,2,"Q","w"],[0,2,4,"R","w"],[1,0,3,"N","w"],[2,3,2,"P","w"],[4,1,3,"K","b"],[1,1,0,"R","b"],[0,2,3,"P","b"],[1,0,4,"B","b"]],[[3,3,0,"K","w"],[0,3,0,"Q","w"],[3,1,2,"N","w"],[3,4,4,"K","b"],[3,1,3,"P","b"]],[[2,3,0,"K","w"],[3,1,3,"Q","w"],[2,2,0,"B","w"],[1,2,4,"N","w"],[4,3,1,"K","b"],[0,4,2,"B","b"],[1,1,3,"B","b"]],[[1,3,0,"K","w"],[1,3,3,"Q","w"],[2,3,2,"R","w"],[0,3,0,"N","w"],[2,1,2,"P","w"],[3,0,3,"K","b"],[0,0,2,"N","b"],[0,0,4,"B","b"],[0,4,4,"N","b"]],[[0,1,2,"K","w"],[0,0,0,"Q","w"],[3,4,1,"B","w"],[0,3,4,"N","w"],[4,3,0,"K","b"],[0,3,0,"N","b"],[2,1,4,"N","b"],[0,3,2,"P","b"]],[[4,4,4,"K","w"],[1,4,1,"Q","w"],[2,0,3,"R","w"],[3,1,4,"B","w"],[3,4,0,"K","b"],[1,1,1,"N","b"],[2,3,3,"P","b"]],[[0,3,4,"K","w"],[4,3,1,"Q","w"],[2,3,1,"R","w"],[3,1,4,"B","w"],[2,4,3,"K","b"],[1,1,2,"P","b"],[4,0,2,"B","b"]],[[0,2,2,"K","w"],[3,0,2,"Q","w"],[3,3,0,"N","w"],[4,0,0,"K","b"]],[[0,0,0,"K","w"],[2,2,1,"Q","w"],[0,4,3,"R","w"],[4,0,1,"N","w"],[1,2,3,"P","w"],[4,4,4,"K","b"]],[[3,1,0,"K","w"],[3,2,1,"Q","w"],[3,1,1,"R","w"],[1,3,3,"N","w"],[1,3,1,"P","w"],[0,2,0,"K","b"],[2,2,3,"P","b"]],[[1,3,1,"K","w"],[2,4,0,"Q","w"],[1,2,4,"B","w"],[1,2,0,"N","w"],[4,3,0,"K","b"],[3,4,4,"N","b"],[2,2,3,"P","b"],[0,1,3,"P","b"]],[[3,3,0,"K","w"],[2,1,3,"Q","w"],[0,1,0,"B","w"],[4,0,4,"K","b"]],[[3,3,2,"K","w"],[3,2,3,"Q","w"],[3,1,3,"N","w"],[3,1,1,"P","w"],[0,0,3,"K","b"],[2,2,2,"P","b"],[4,2,3,"B","b"],[4,1,0,"R","b"]],[[3,0,4,"K","w"],[1,1,1,"Q","w"],[0,1,2,"R","w"],[3,3,3,"B","w"],[4,0,2,"K","b"],[0,0,1,"N","b"],[3,0,2,"N","b"]],[[2,0,3,"K","w"],[2,4,3,"Q","w"],[4,3,3,"R","w"],[2,4,0,"B","w"],[4,2,4,"K","b"],[0,1,3,"P","b"],[3,1,3,"R","b"],[2,1,1,"P","b"]],[[2,3,3,"K","w"],[2,1,1,"Q","w"],[2,0,0,"R","w"],[1,2,3,"B","w"],[1,4,0,"N","w"],[0,3,4,"K","b"]],[[4,0,1,"K","w"],[1,2,2,"Q","w"],[3,1,1,"B","w"],[1,1,4,"K","b"],[3,2,3,"P","b"],[2,3,2,"P","b"]],[[3,2,4,"K","w"],[2,1,0,"Q","w"],[1,3,0,"R","w"],[4,3,1,"B","w"],[0,2,3,"P","w"],[4,2,1,"K","b"]],[[3,2,0,"K","w"],[2,3,1,"Q","w"],[2,1,3,"R","w"],[0,1,2,"N","w"],[0,4,4,"K","b"]],[[2,1,2,"K","w"],[1,4,3,"Q","w"],[3,1,4,"R","w"],[4,3,3,"P","w"],[4,2,1,"K","b"]],[[1,1,4,"K","w"],[2,2,4,"Q","w"],[3,0,0,"R","w"],[3,4,0,"B","w"],[0,2,3,"P","w"],[1,4,3,"K","b"]],[[0,0,4,"K","w"],[1,3,3,"Q","w"],[2,3,4,"R","w"],[2,1,2,"P","w"],[3,0,4,"K","b"],[2,4,4,"B","b"]],[[3,1,2,"K","w"],[0,0,1,"Q","w"],[2,1,4,"N","w"],[4,0,0,"K","b"],[1,4,2,"B","b"],[3,1,1,"P","b"],[0,1,4,"N","b"]],[[2,0,4,"K","w"],[1,1,0,"Q","w"],[4,1,1,"R","w"],[1,3,0,"B","w"],[2,2,1,"N","w"],[1,2,1,"P","w"],[4,0,4,"K","b"],[2,3,2,"B","b"],[4,3,0,"R","b"]],[[1,1,0,"K","w"],[1,3,1,"Q","w"],[4,3,2,"R","w"],[0,2,0,"B","w"],[1,1,3,"N","w"],[0,3,4,"K","b"],[2,2,3,"P","b"]],[[4,1,3,"K","w"],[0,1,4,"Q","w"],[4,3,0,"N","w"],[2,2,3,"P","w"],[2,0,4,"K","b"],[1,3,4,"B","b"],[4,2,1,"B","b"]],[[2,1,3,"K","w"],[2,3,2,"Q","w"],[0,4,1,"R","w"],[2,1,2,"B","w"],[2,2,1,"P","w"],[4,2,3,"K","b"]],[[1,2,1,"K","w"],[3,3,4,"Q","w"],[4,0,3,"R","w"],[2,1,0,"B","w"],[2,1,1,"N","w"],[4,2,2,"P","w"],[3,4,2,"K","b"],[0,0,4,"R","b"]],[[1,1,1,"K","w"],[1,3,4,"Q","w"],[3,1,3,"R","w"],[3,2,1,"B","w"],[2,1,2,"N","w"],[0,0,4,"K","b"]],[[0,3,1,"K","w"],[1,4,3,"Q","w"],[4,1,3,"B","w"],[2,0,1,"N","w"],[0,1,0,"K","b"],[4,3,3,"B","b"]],[[2,2,1,"K","w"],[0,1,0,"Q","w"],[0,2,1,"R","w"],[0,0,2,"N","w"],[2,4,0,"K","b"],[4,2,3,"P","b"],[0,1,1,"P","b"],[3,2,2,"R","b"]]];
 const dayIdx=()=>Math.floor((Date.now()-Date.UTC(2026,0,1))/864e5);
 const dayStr=()=>new Date().toISOString().slice(0,10);
 function puzState(i){const m=new Map();for(const [x,y,z,t,sd] of PUZZLES[i])m.set(key(x,y,z),{t,s:sd});return {m,bd:newState().bd}}
@@ -755,7 +753,7 @@ function setView(v,quiet){
   heroMode=v=='home';
   if(v=='home'){$('disc').appendChild(ren2.domElement);if(!puzHome)loadHomePuzzle();buildHome();fit2()}
   else{stage.appendChild(ren.domElement);if(ren2.domElement.parentElement)ren2.domElement.remove();
-    if(v=='play'){if(puzHome){puzHome=false;puzzleMode=false;if(saved){const c=saved;saved=null;restore(c)}else init()}az=homeAz();el=.42;zoomed=false;tw=null}
+    if(v=='play'){if(puzHome){puzHome=false;puzzleMode=false;if(saved){const c=saved;saved=null;restore(c)}else init()}az=homeAz();el=.5;zoomed=false;tw=null}
     if(v=='rank')buildRank()}
   fit();if(typeof paint==='function'&&typeof ST!=='undefined'&&ST)paint();
   if(v=='play'&&netQ.length){const q=netQ;netQ=[];q.forEach(onNet)}
@@ -793,7 +791,7 @@ function netJoin(code){if(typeof Peer==='undefined')return netFail('Connexion in
     netT=setTimeout(()=>{if(!net){netFail('Impossible de joindre cette partie. Vérifie le code.')}},12000)});
   p.on('error',e=>netFail(e.type=='peer-unavailable'?'Code introuvable. Vérifie-le avec ton ami.':'Le serveur de connexion ne répond pas. Réessaie dans un instant.'))}
 function netLink(c,me){const go=()=>{if(net)return;clearTimeout(netT);net={conn:c,me};netQ=[];nm.classList.remove('on');$('net-copy').style.display='';
-    saved=null;init();applyMode();setView('play');az=homeAz();el=.42;updCam();paint();ui(me=='w'?'Ton ami est connecté : tu joues les Blancs, c’est à toi.':'Connecté : tu joues les Noirs, ton ami commence.')};
+    saved=null;init();applyMode();setView('play');az=homeAz();el=.5;updCam();paint();ui(me=='w'?'Ton ami est connecté : tu joues les Blancs, c’est à toi.':'Connecté : tu joues les Noirs, ton ami commence.')};
   c.on('open',go);if(c.open)go();
   c.on('data',onNet);
   c.on('close',()=>{if(!net||net.conn!==c)return;if(!over){over=true;sel=null;legal=[];selB=null;slots=[];ui('Ton ami s’est déconnecté.');paint()}});

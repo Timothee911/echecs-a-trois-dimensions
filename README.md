@@ -1,6 +1,6 @@
 # Échecs à trois dimensions
 
-Les échecs tridimensionnels façon *Star Trek*, en three.js : trois plateaux principaux 4×4 posés en escalier et quatre plateaux d'attaque 2×2 mobiles sur des tenons, sur six niveaux, comme le jeu de la série. Tu joues les Blancs contre un bot (trois niveaux) ou à deux, avec un ELO comme aux échecs classiques.
+Les échecs en 3D en three.js : cinq plateaux 5×5 superposés (niveaux A à E, 125 cases), avec la licorne. Tu joues les Blancs contre un bot (trois niveaux), à deux ou en ligne avec un ami, avec un ELO comme aux échecs classiques.
 
 ![Aperçu](apercu.png)
 
@@ -12,9 +12,10 @@ python3 -m http.server 8000
 
 Puis ouvrir http://localhost:8000
 
-## Règles (version de fans simplifiée)
-- On raisonne vue de dessus : chaque pièce bouge comme aux échecs classiques, puis se pose sur le niveau de son choix. Une pièce sur la trajectoire, à n'importe quel niveau, bloque les pièces qui glissent.
-- Plateaux d'attaque : à ton tour, tu peux déplacer un plateau que tu contrôles vers un tenon libre voisin (autre coin du même plateau, plateau voisin, ou de l'autre côté) au lieu de jouer une pièce.
+## Règles
+- Départ : Blancs sur les niveaux A et B, Noirs sur D et E, niveau C vide. Case = niveau + colonne + rangée, par exemple `Bc3`.
+- Tour sur 3 axes, fou en diagonale plane, licorne en diagonale à travers les trois axes, dame = tour + fou + licorne, cavalier en L (2 + 1) niveaux compris, roi d'une case dans les 26 directions.
+- Pion : avance d'une case en rangée ou en niveau, prend en diagonale vers l'avant, devient dame au dernier rang ou niveau.
 - Échec, échec et mat et pat détectés. Pas de roque ni de prise en passant.
 
 ## Jouer avec un ami
