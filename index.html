@@ -669,7 +669,12 @@ const VAL={P:100,N:320,B:330,U:360,R:500,Q:900,K:20000};
 function evalB(St){let sc=0;for(const [k,p] of St.m){const [x,y,z]=kx(k);let v=VAL[p.t];
   if(p.t!='K')v+=(7-Math.abs(x-2)-Math.abs(y-2)-Math.abs(z-2)*.7)*3;
   if(p.t=='P')v+=(p.s=='w'?y+z:8-y-z)*5;
-  sc+=p.s=='b'?v:-v}return sc}
+  sc+=p.s=='b'?v:-v}
+  // fin de partie (niveau Fort seulement) : le bot pousse le roi adverse vers le bord et rapproche son roi pour mater
+  if(botLvl==3&&St.m.size<=14){let wk,bk;for(const [k,p] of St.m)if(p.t=='K'){if(p.s=='w')wk=kx(k);else bk=kx(k)}
+    if(wk&&bk&&sc>150){sc+=(Math.abs(wk[0]-2)+Math.abs(wk[1]-2)+Math.abs(wk[2]-2))*12+(12-Math.abs(wk[0]-bk[0])-Math.abs(wk[1]-bk[1])-Math.abs(wk[2]-bk[2]))*6}
+    else if(wk&&bk&&sc<-150){sc-=(Math.abs(bk[0]-2)+Math.abs(bk[1]-2)+Math.abs(bk[2]-2))*12+(12-Math.abs(wk[0]-bk[0])-Math.abs(wk[1]-bk[1])-Math.abs(wk[2]-bk[2]))*6}}
+  return sc}
 function allMoves(St,s){const out=[];
   for(const [k,p] of St.m)if(p.s==s){const [x,y,z]=kx(k);for(const t of pseudo(St,x,y,z)){const c=St.m.get(key(t[0],t[1],t[2]));out.push({k:'p',f:[x,y,z],t,sc:c?VAL[c.t]*10-VAL[p.t]:0})}}
   for(const m of boardMoves(St,s)){m.sc=-5000;out.push(m)}
@@ -682,7 +687,11 @@ function search(St,s,d,al,be){
     if(v>best)best=v;if(v>al)al=v;if(al>=be)break}
   return ms.length?best:0}
 function botPick(){const cfg=BOT[botLvl];let best=null,bs=-1e9;
-  for(const m of legalAll(ST,'b')){const v=-search(applyMove(ST,m),'w',cfg.d-1,-1e9,1e9)+Math.random()*cfg.noise-(m.k=='b'?90:0);if(v>bs){bs=v;best=m}}
+  const n=ST.m.size,fin=n<=14;
+  let d=cfg.d,noise=cfg.noise;
+  if(botLvl==3){if(n<=5)d+=2;else if(fin)d+=1}   // Fort : plus acharné en finale
+  else if(fin)noise=botLvl==1?400:100;           // Facile / Moyen : moins acharné en finale
+  for(const m of legalAll(ST,'b')){const v=-search(applyMove(ST,m),'w',d-1,-1e9,1e9)+Math.random()*noise-(m.k=='b'?90:0);if(v>bs){bs=v;best=m}}
   return best}
 function botNext(){if(!botOn()||over||turn!='b')return;thinking=true;const pre=$('msg').textContent;ui((pre?pre+' · ':'')+'Le bot réfléchit…');
   clearTimeout(botT);botT=setTimeout(()=>{const m=botPick();thinking=false;if(over||!m)return;commit(m)},380)}
@@ -694,7 +703,7 @@ $('v-home').onclick=()=>{zoomed=false;const d=Math.max(25,17/Math.min(cam.aspect
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t==b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==b.dataset.t))});
 document.getElementById('reset').onclick=()=>newGame();
 window.__eng={newState,legalAll,applyMove,findK,attacked,cellsOf,key};
-window.__dbg={play,get sel(){return sel},get legal(){return legal},get marks(){return ghostGroup.children.length},get hist(){return hist.length}};
+window.__dbg={botPick,setLvl:v=>{botLvl=v},get ST(){return ST},set ST(v){ST=v},play,get sel(){return sel},get legal(){return legal},get marks(){return ghostGroup.children.length},get hist(){return hist.length}};
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,y0:slots[i].y0,z:slots[i].z}),cam:()=>({az,el,dist}),all:()=>legalAll(ST,turn).length,doMove:i=>commit(legalAll(ST,turn)[i]),turn:()=>turn,az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 function buildHero(){const g=boardGroup.clone(true);g.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial)o.material=o.material.clone()});scene2.add(g);
   for(const [k,p] of newState().m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;scene2.add(o)}}
