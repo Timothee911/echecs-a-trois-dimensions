@@ -622,11 +622,11 @@ function paint(){
     m.position.set(sl.x0+.5-2.5,YZ(sl.z)-.05,4.5-(sl.y0+.5));m.userData.slot=sl;ghostGroup.add(m);ghostMeshes.push(m)}}
   const lm=hist.length&&!puzzleMode?hist[hist.length-1].mv:null;
   const eq=(a,x,y,z)=>a&&a[0]==x&&a[1]==y&&a[2]==z;
-  for(const m of cellMeshes){const {x,y,z,base,bd}=m.userData;let c=base,op=.8;
-    if(lm&&((lm.k=='p'&&(eq(lm.f,x,y,z)||eq(lm.t,x,y,z)))||(lm.k=='b'&&bd==lm.id))){c=0xf3d36b;op=.92}
+  for(const m of cellMeshes){const {x,y,z,base,bd}=m.userData;let c=base,op=.8,em=.12;
+    if(lm&&((lm.k=='p'&&(eq(lm.f,x,y,z)||eq(lm.t,x,y,z)))||(lm.k=='b'&&bd==lm.id))){c=0xffe600;op=1;em=.55}
     if(selB&&bd==selB){c=0xffe08a;op=.95}
-    if(eq(sel,x,y,z)){c=0xffc83d;op=.97}
-    m.material.color.setHex(c);m.material.opacity=op}
+    if(eq(sel,x,y,z)){c=0x4aa8ff;op=1;em=.5}
+    m.material.color.setHex(c);m.material.emissive.setHex(c);m.material.emissiveIntensity=em;m.material.opacity=op}
   for(const t of legal){const cap=ST.m.get(key(t[0],t[1],t[2])),p=wp(t[0],t[1],t[2]);
     if(cap){const r=new THREE.Mesh(RING_G,RING_M);
       r.rotation.x=-Math.PI/2;r.position.set(p.x,p.y+.05,p.z);r.renderOrder=5;ghostGroup.add(r)}
@@ -774,7 +774,9 @@ function route(){const h=location.hash,j=h.match(/^#\/ami\/([A-Za-z0-9]{6})/);if
 window.addEventListener('hashchange',route);
 document.querySelectorAll('#nav a.lk').forEach(a=>a.onclick=e=>{e.preventDefault();setView(a.dataset.v)});
 $('cta').onclick=()=>setView('play');
-function startMode(lvl){netAbortAll();saved=null;if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
+function startMode(lvl){netAbortAll();const want=lvl===undefined?(botOn()?botLvl:2):lvl;
+  if(saved&&!net&&saved.hist.length&&((want==0)==(botLvl==0))&&(want==0||want==botLvl)){setView('play');return}
+  saved=null;if(!botLvl&&lvl===undefined)lvl=2;const v=lvl===undefined?(botOn()?botLvl:2):lvl;botLvl=v;store.set('c3d-bot',botLvl);$('opp').value=String(botLvl);init();paint();applyMode();setView('play')}
 $('h-bot').onclick=()=>startMode(botOn()?botLvl:2);
 $('h-two').onclick=()=>startMode(0);
 $('h-rules').onclick=()=>setView('rules');
