@@ -237,6 +237,44 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}
  .acts{padding:8px 14px;gap:6px}.btn{padding:10px 6px;font-size:12.5px}
 }
 @media(max-width:640px) and (max-height:700px){.panes{max-height:60px}#tabs{display:none}.panes{display:none}}
+
+.rk.wide{max-width:860px}
+.rtoc{position:sticky;top:0;z-index:2;display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:-6px 0 8px;background:var(--bg);scrollbar-width:none}
+.rtoc::-webkit-scrollbar{display:none}
+.rtoc a{flex:none;font:600 13px inherit;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 13px}
+.rtoc a:hover{border-color:var(--acc);color:var(--acc)}
+.rs{margin:0 0 34px;scroll-margin-top:56px}
+.rs h3{display:flex;align-items:center;gap:10px;font-size:23px;letter-spacing:-.02em;margin:0 0 12px}
+.rs h3 span{width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--accfg);display:grid;place-items:center;font:800 14px ui-monospace,Menlo,monospace;flex:none}
+.rs p{color:var(--mut);line-height:1.6;font-size:15px;margin:0 0 12px}.rs p b,.rs li b{color:var(--ink)}
+.rs code,.pc h4 code{font:700 .9em ui-monospace,Menlo,monospace;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--acc2)}
+.rbig{font-size:18px;line-height:1.5;background:linear-gradient(135deg,#1f7a8c,#134b57);color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:12px}
+.rcoord{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+.rcoord div,.rcards div{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px}
+.rcoord b,.rcards b{display:block;font-size:15px}.rcoord span{display:block;font:800 17px ui-monospace,Menlo,monospace;color:var(--acc2);margin:4px 0 2px}.rcoord small{color:var(--mut);font-size:12px}
+.rcards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rcards span{display:block;color:var(--mut);font-size:13.5px;line-height:1.5;margin-top:4px}
+.rl{margin:0 0 12px;padding-left:20px;color:var(--mut);line-height:1.6;font-size:14.5px}.rl li{margin:4px 0}
+.pc{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:18px;margin:0 0 14px}
+.pc header{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.pc .th{width:64px;height:80px;flex:none;border-radius:12px;background:linear-gradient(160deg,#2c3a4b,#141b24);display:grid;place-items:center;overflow:hidden;font-size:40px;color:#fff}
+.pc .th img{width:100%;height:100%;object-fit:contain}
+.pc h4{margin:0 0 6px;font-size:21px;letter-spacing:-.02em}.pc h4 code{font-size:13px;margin-left:4px;vertical-align:2px}
+.pc .pcap{font-size:12.5px;margin:6px 0 10px;text-align:center}
+.tip{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.lg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
+.lgl{text-align:center;min-width:0}.lgl b{display:block;font:800 13px ui-monospace,Menlo,monospace;margin-top:5px}.lgl small{display:block;color:var(--mut);font-size:11px}
+.lgl.cur b{color:var(--acc)}
+.lgg{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);border-radius:6px;overflow:hidden;border:2px solid #8a5a2b;aspect-ratio:1}
+.lgl.cur .lgg{box-shadow:0 0 0 2px var(--acc)}
+.lgg .c,.lgk .c{display:grid;place-items:center;font-size:min(3vw,15px);line-height:1;position:relative;color:#1b2430}
+.lgg .c{aspect-ratio:1;min-width:0}.c.l{background:#f6e4c2}.c.d{background:#c98c4f}
+.c.mv:after{content:"";width:46%;height:46%;border-radius:50%;background:#1f7a8c}
+.c.cp:after{content:"";width:62%;height:62%;border-radius:50%;border:2px solid #e02b3a;box-sizing:border-box}
+.c.me{background:#4aa8ff!important;font-weight:700}
+.lgk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);margin-left:6px;white-space:nowrap}.lgk .c{width:16px;height:16px;border-radius:4px;background:#f6e4c2;display:inline-grid}
+.lgrow{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:460px;margin:0 auto 12px}
+.lgl.big .lgg .c{font-size:clamp(16px,5vw,26px)}.lgl.big .c.pp.b{color:#3b4a66}.lgl.big b{font-family:inherit;font-size:14px}
+@media(max-width:640px){.rcoord{grid-template-columns:1fr}.rcards{grid-template-columns:1fr}.lg{gap:4px}.pc{padding:14px}.lgl small{font-size:9.5px}.rs h3{font-size:20px}}
 </style></head><body>
 <header id="nav">
   <a class="logo2" href="#/"><i><img src="favicon.svg" alt=""></i><span>Échecs 3D</span></a>
@@ -273,7 +311,7 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}
     <div class="feat"><div class="ic">★</div><b>Classement ELO</b><span>Ton ELO évolue à chaque partie, comme aux échecs classiques, et reste gardé dans ton navigateur.</span></div>
   </div>
 </div></section>
-<section id="rules-view" class="view"><div class="rk wide"><h2>Règles</h2><p>Tout ce qu’il faut savoir pour jouer, en quelques lignes.</p><div id="rules-page"></div></div></section>
+<section id="rules-view" class="view"><div class="rk wide"><h2>Règles</h2><p>Tout pour bien jouer aux échecs en trois dimensions : le plateau, chaque pièce en détail, et le déroulement d’une partie.</p><div id="rules-page"></div></div></section>
 <section id="rank-view" class="view"><div class="rk"><h2>Classement</h2><p>Classement local : ton ELO face aux bots.</p><div id="rank-list"></div></div></section>
 <div id="play-view" class="view">
 <main id="stage">
@@ -559,23 +597,76 @@ $('swap').onclick=()=>{if(botOn()||net)return;if(hist.length&&!over&&!confirm('I
 $('elo-reset').onclick=e=>{e.preventDefault();players.w.elo=players.b.elo=1200;players.w.g=players.b.g=0;deltas={w:null,b:null};store.set('c3d-players',players);renderPlayers()};
 // ---------- règles illustrées ----------
 const RULES=[
- ['K','Roi',['1 case','26 directions'],'Une case dans n\u2019importe quelle direction : colonne, rangée ou niveau, en ligne ou en diagonale. À protéger à tout prix.'],
- ['Q','Dame',['Glisse','Toutes directions'],'La plus puissante : tour, fou et licorne réunis, en ligne droite ou en diagonale, sur les trois dimensions.'],
- ['R','Tour',['Glisse','3 axes'],'En ligne droite le long d\u2019une colonne, d\u2019une rangée ou d\u2019un niveau (monter ou descendre).'],
- ['B','Fou',['Glisse','Diagonale plane'],'En diagonale dans un plan : colonne et rangée, rangée et niveau, ou colonne et niveau.'],
- ['U','Licorne',['Glisse','Triagonale'],'La pièce propre au jeu 3D : diagonale à travers les trois axes à la fois, d\u2019étage en étage.'],
- ['N','Cavalier',['Saute','2 + 1'],'Deux cases dans une direction puis une dans une autre, niveaux compris. Il saute par-dessus toutes les pièces.'],
- ['P','Pion',['1 case','Promotion'],'Avance d\u2019une case vers l\u2019adversaire, en rangée ou en niveau. Prend en diagonale vers l\u2019avant. Devient dame au dernier rang ou au dernier niveau.']];
+ ['K','Roi','R',{n:1,v:'inestimable',dir:'26 directions',kind:'Pas à pas',pos:[2,2,2]},
+  ['Se déplace d’<b>une seule case</b> dans n’importe laquelle des 26 directions : devant, derrière, sur les côtés, en diagonale, et aussi à l’étage du dessus ou du dessous.',
+   'Il ne peut jamais aller sur une case attaquée par l’adversaire.',
+   'Si ton roi est attaqué, tu es <b>en échec</b> : tu dois parer tout de suite. S’il n’y a aucune parade, c’est <b>échec et mat</b> et la partie est perdue.'],
+  'Le roi se cache facilement en 3D : surveille aussi les niveaux au-dessus et en dessous de lui.'],
+ ['Q','Dame','D',{n:1,v:9,dir:'26 directions',kind:'Glisse',pos:[2,2,2]},
+  ['Glisse d’autant de cases que tu veux, en ligne droite, dans les <b>26 directions</b>.',
+   'Elle réunit les coups de la tour, du fou et de la licorne : c’est de loin la pièce la plus forte.',
+   'Elle ne saute pas : elle s’arrête devant une pièce de son camp, ou prend la première pièce adverse sur sa route.'],
+  'Depuis le centre du cube (Cc3), sur un plateau vide, elle atteint 52 cases, plus de quatre fois plus qu’une tour (12 cases).'],
+ ['R','Tour','T',{n:2,v:5,dir:'6 directions',kind:'Glisse',pos:[2,2,2]},
+  ['Glisse en ligne droite le long d’un des <b>trois axes</b> : colonne (gauche, droite), rangée (avant, arrière) ou niveau (monter, descendre).',
+   'Elle peut traverser plusieurs étages d’un coup, à la verticale, si la route est libre.',
+   'Elle ne saute pas par-dessus les pièces.'],
+  'Une tour qui monte en colonne verticale attaque toute une pile de cases : très utile pour viser le roi adverse depuis un autre étage.'],
+ ['B','Fou','F',{n:2,v:3,dir:'12 directions',kind:'Glisse',pos:[2,2,2]},
+  ['Glisse en <b>diagonale dans un plan</b> : deux axes changent à chaque pas, le troisième reste fixe.',
+   'Trois sortes de diagonales : sur un même plateau (colonne + rangée), en montant vers l’avant (rangée + niveau) ou en montant sur le côté (colonne + niveau).',
+   'Il ne saute pas par-dessus les pièces.'],
+  'Comme aux échecs classiques, un fou garde toujours la même couleur de case.'],
+ ['U','Licorne','L',{n:2,v:4,dir:'8 directions',kind:'Glisse',pos:[2,2,2]},
+  ['La pièce propre au jeu en 3D. Elle glisse en <b>diagonale à travers les trois axes à la fois</b> : à chaque pas elle change de colonne, de rangée <i>et</i> de niveau.',
+   'Elle ne reste donc jamais sur le même plateau : chaque pas la fait monter ou descendre d’un étage.',
+   'Elle ne saute pas par-dessus les pièces.'],
+  'La licorne atteint seulement une case sur quatre du cube : utile pour des attaques surprises, mais elle se fait facilement éviter.'],
+ ['N','Cavalier','C',{n:2,v:3,dir:'24 cases',kind:'Saute',pos:[2,2,2]},
+  ['Fait un saut en « L » : <b>deux cases</b> le long d’un axe, puis <b>une case</b> le long d’un autre axe.',
+   'Les axes peuvent être la colonne, la rangée ou le niveau : il peut donc sauter deux étages d’un coup, ou monter d’un étage en avançant de deux cases.',
+   'C’est la <b>seule pièce qui saute</b> par-dessus les autres.'],
+  'Les deux cavaliers démarrent juste à côté du roi, au niveau A : ils sont souvent les premiers à sortir, en sautant par-dessus les pions.'],
+ ['P','Pion','',{n:10,v:1,dir:'avance',kind:'Pas à pas',pos:[2,1,1]},
+  ['Avance d’<b>une case</b> vers l’adversaire : soit d’une rangée vers l’avant, soit d’<b>un étage</b> vers le camp adverse (vers le haut pour les Blancs, vers le bas pour les Noirs). Jamais de deux cases.',
+   'Il <b>prend en diagonale vers l’avant</b> : une case vers l’avant (rangée ou étage) et une case sur le côté (colonne), ou en avançant et en changeant d’étage en même temps.',
+   'Arrivé à la <b>dernière rangée</b> ou au <b>dernier niveau</b> adverse, il devient une dame.'],
+  'Pas de double pas au départ, donc pas de prise en passant.']];
 function thumbs(){const out={};let r;try{r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(2);r.setSize(128,160);
   const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x556677,1.4));const l=new THREE.DirectionalLight(0xffffff,1.6);l.position.set(3,5,4);sc.add(l);
   const c=new THREE.PerspectiveCamera(28,128/160,.1,50);const H={P:.95,R:.95,N:1.12,B:1.35,U:1.2,Q:1.45,K:1.7};
   for(const [t] of RULES){const o=makePiece(t,'w');o.rotation.y=.9;sc.add(o);const h=H[t];c.position.set(0,h*.5+.55,h*2.95);c.lookAt(0,h*.48,0);r.render(sc,c);out[t]=r.domElement.toDataURL();sc.remove(o)}
   r.dispose()}catch(e){}return out}
-const STEPS='<div class="steps"><div class="stp"><i>1</i><b>Le but</b><span>Mettre le roi adverse en échec et mat. Tu joues les Blancs, en bas.</span></div><div class="stp"><i>2</i><b>Un coup par tour</b><span>Tu déplaces une pièce, ou un plateau d’attaque. Puis c’est à l’adversaire.</span></div><div class="stp"><i>3</i><b>Trois dimensions</b><span>Les pièces avancent comme aux échecs, mais aussi vers le haut et vers le bas : on change d’étage.</span></div><div class="stp"><i>4</i><b>La licorne</b><span>Cette pièce glisse en diagonale à travers les trois axes à la fois. Les cases s’écrivent niveau + colonne + rangée, par exemple <b>Bc3</b>.</span></div></div>';
+const PG={K:'♔',Q:'♕',R:'♖',B:'♗',U:'✧',N:'♘',P:'♙'},PGB={K:'♚',Q:'♛',R:'♜',B:'♝',U:'✦',N:'♞',P:'♟'};
+// mini-plateaux A à E : cases jouables d'une pièce, calculées par le moteur
+function moveMap(t,pos){const m=new Map();m.set(key(...pos),{t,s:'w'});const St={m,bd:[]};const mv=new Set(pseudo(St,...pos).map(v=>key(...v))),cap=new Set();
+  if(t=='P'){const [x,y,z]=pos;for(const ax of[1,2])for(const lat of[0,1,2]){if(lat==ax)continue;for(const l of[-1,1]){const v=[x,y,z];v[ax]+=1;v[lat]+=l;if(inGrid(...v))cap.add(key(...v))}}}
+  return {mv,cap}}
+function lvlGrids(t,pos){const {mv,cap}=moveMap(t,pos);let h='<div class="lg">';
+  for(let z=4;z>=0;z--){let g='';let n=0;for(let y=4;y>=0;y--)for(let x=0;x<5;x++){const k=key(x,y,z);let c='c '+((x+y+z)%2?'l':'d');let tx='';
+      if(x==pos[0]&&y==pos[1]&&z==pos[2]){c+=' me';tx=PG[t]}else if(mv.has(k)){c+=' mv';n++}else if(cap.has(k)){c+=' cp';n++}
+      g+='<i class="'+c+'">'+tx+'</i>'}
+    h+='<div class="lgl'+(z==pos[2]?' cur':'')+'"><div class="lgg">'+g+'</div><b>'+LV[z]+'</b><small>'+(n?n+' case'+(n>1?'s':''):'—')+'</small></div>'}
+  return h+'</div>'}
+function startGrid(z,side){let g='';const St=newState();for(let y=4;y>=0;y--)for(let x=0;x<5;x++){const p=St.m.get(key(x,y,z));
+  g+='<i class="c '+((x+y+z)%2?'l':'d')+(p?' pp '+p.s:'')+'">'+(p?(p.s=='w'?PG:PGB)[p.t]:'')+'</i>'}
+  return '<div class="lgl big"><div class="lgg">'+g+'</div><b>Niveau '+LV[z]+'</b><small>'+side+'</small></div>'}
+const STEPS='';
 function buildRules(){const th=thumbs();
-  const html='<div class="rhero"><h3>Échecs à trois dimensions</h3><p>Cinq plateaux 5×5 superposés (niveaux A à E), soit 125 cases. Une case s\u2019écrit niveau + colonne + rangée, par exemple <b>Bc3</b>.</p><div class="chips"><span class="chip">Niveaux A–E</span><span class="chip">Colonnes a–e</span><span class="chip">Rangées 1–5</span></div></div>'+
-  '<div class="rgrid">'+RULES.map(([t,n,tg,d])=>'<div class="rc"><div class="th">'+(th[t]?'<img alt="'+n+'" src="'+th[t]+'">':'')+'</div><div><h4>'+n+'</h4><p>'+d+'</p><div class="tg">'+tg.map((x,i)=>'<i class="'+(i?'g':'')+'">'+x+'</i>').join('')+'</div></div></div>').join('')+
-  '<div class="rgoal"><b>But du jeu</b> : mettre le roi adverse en échec et mat. Pas de roque ni de prise en passant. Un pat donne une partie nulle.</div>';$('rules').innerHTML=html;$('rules-page').innerHTML=STEPS+html}
+  const sec=(n,t,b)=>'<section class="rs"><h3><span>'+n+'</span>'+t+'</h3>'+b+'</section>';
+  const toc='<nav class="rtoc"><a href="#r-but">But</a><a href="#r-plat">Plateau</a><a href="#r-dep">Départ</a><a href="#r-pcs">Pièces</a><a href="#r-part">Partie</a><a href="#r-ctl">Commandes</a><a href="#r-mod">Modes</a></nav>';
+  const but=sec(1,'Le but du jeu','<div class="rbig">Mets le <b>roi adverse en échec et mat</b> : il est attaqué et n’a plus aucun moyen d’y échapper.</div><p>Les règles sont celles des échecs classiques, avec une dimension en plus : les pièces se déplacent aussi <b>vers le haut et vers le bas</b>, d’un plateau à l’autre. Les Blancs commencent, puis chaque joueur joue un coup à tour de rôle.</p>');
+  const plat=sec(2,'Le plateau','<p>Cinq plateaux de 5×5 cases sont empilés : les <b>niveaux A</b> (en bas) <b>à E</b> (en haut), soit <b>125 cases</b>. Chaque case a trois coordonnées :</p><div class="rcoord"><div><b>Niveau</b><span>A, B, C, D, E</span><small>l’étage, de bas en haut</small></div><div><b>Colonne</b><span>a, b, c, d, e</span><small>de gauche à droite</small></div><div><b>Rangée</b><span>1, 2, 3, 4, 5</span><small>du côté blanc au côté noir</small></div></div><p>Une case s’écrit <b>niveau + colonne + rangée</b> : <code>Bc3</code> est la case c3 du niveau B. Le centre du cube est <code>Cc3</code>.</p>');
+  const dep=sec(3,'La position de départ','<p>Chaque camp a <b>20 pièces</b> réparties sur ses deux niveaux. Les Blancs occupent les niveaux A et B, les Noirs les niveaux D et E. Le niveau C, au milieu, est vide.</p><div class="lgrow">'+startGrid(1,'Blancs · 2<sup>e</sup> niveau')+startGrid(0,'Blancs · 1<sup>er</sup> niveau')+'</div><ul class="rl"><li><b>Niveau A</b>, rangée 1 : tour, cavalier, roi, cavalier, tour. Rangée 2 : cinq pions.</li><li><b>Niveau B</b>, rangée 1 : fou, licorne, dame, licorne, fou. Rangée 2 : cinq pions.</li><li>Les Noirs ont la même disposition en miroir : niveau E (tours, cavaliers, roi) et niveau D (fous, licornes, dame), rangées 5 et 4.</li></ul>');
+  const pcs=sec(4,'Les pièces','<p>Sept sortes de pièces. Les schémas montrent les cinq niveaux, de E (en haut) à A (en bas), avec la pièce placée sur un plateau vide. <span class="lgk"><i class="c mv"></i> case atteinte</span> <span class="lgk"><i class="c cp"></i> prise seulement</span></p>'+
+    RULES.map(([t,n,L,inf,pts,tip])=>'<article class="pc" id="pc-'+t+'"><header><div class="th">'+(th[t]?'<img alt="'+n+'" src="'+th[t]+'">':'<span>'+PG[t]+'</span>')+'</div><div><h4>'+n+(L?' <code>'+L+'</code>':' <code>sans lettre</code>')+'</h4><div class="tg"><i>'+inf.kind+'</i><i>'+inf.dir+'</i><i class="g">'+inf.n+' par camp</i><i class="g">valeur '+inf.v+'</i></div></div></header>'+
+      '<ul class="rl">'+pts.map(p=>'<li>'+p+'</li>').join('')+'</ul>'+lvlGrids(t,inf.pos)+'<p class="pcap">Depuis <code>'+LV[inf.pos[2]]+FILES[inf.pos[0]]+(inf.pos[1]+1)+'</code>'+(t=='P'?' (pion blanc)':'')+'.</p><div class="tip">💡 '+tip+'</div></article>').join(''));
+  const part=sec(5,'Déroulement d’une partie','<div class="rcards"><div><b>Échec</b><span>Le roi est attaqué. Il faut parer tout de suite : déplacer le roi, prendre l’attaquant ou s’interposer. Un coup qui laisse ton roi en échec est interdit.</span></div><div><b>Échec et mat</b><span>Le roi est en échec et aucun coup ne le sauve. Le joueur qui fait mat gagne.</span></div><div><b>Pat</b><span>Le joueur au trait n’est pas en échec mais n’a aucun coup possible : la partie est nulle.</span></div><div><b>Promotion</b><span>Un pion qui atteint la dernière rangée ou le dernier niveau adverse devient une dame.</span></div><div><b>Abandon</b><span>Tu peux abandonner à tout moment avec le bouton « Abandon » : l’adversaire gagne.</span></div><div><b>Pas de roque</b><span>Ni roque ni prise en passant dans cette version.</span></div></div>');
+  const ctl=sec(6,'Les commandes','<ul class="rl"><li><b>Jouer un coup</b> : clique (ou touche) une de tes pièces. Ses coups apparaissent : un <b>point</b> pour une case libre, un <b>cercle rouge</b> autour d’une pièce que tu peux prendre. Clique la case voulue.</li><li><b>Annuler la sélection</b> : reclique sur la même pièce.</li><li><b>Dernier coup</b> : ses cases de départ et d’arrivée sont en <b>jaune</b>, la pièce sélectionnée en <b>bleu</b>.</li><li><b>Tourner le plateau</b> : glisse avec la souris ou le doigt. <b>Zoom</b> : molette, ou deux doigts sur téléphone.</li><li><b>Boutons de vue</b> : tourner d’un quart de tour, vue de dessus, vue de côté, recentrer.</li><li><b>Annuler</b> reprend ton dernier coup (pas en ligne).</li></ul>');
+  const mod=sec(7,'Les modes de jeu','<div class="rcards"><div><b>Contre le bot</b><span>Trois niveaux : Facile (ELO 800), Moyen (1200) et Fort (1500). Tu joues les Blancs. Ton ELO évolue à chaque partie.</span></div><div><b>Avec un ami</b><span>« Inviter un ami » crée un code et un lien à envoyer. Celui qui invite joue les Blancs.</span></div><div><b>Local à deux</b><span>Deux joueurs sur le même écran, chacun son tour.</span></div><div><b>Puzzle du jour</b><span>Un nouveau mat en un coup chaque jour. Trouve-le du premier coup pour allonger ta série.</span></div></div>');
+  const html=toc+but.replace('<section class="rs">','<section class="rs" id="r-but">')+plat.replace('<section class="rs">','<section class="rs" id="r-plat">')+dep.replace('<section class="rs">','<section class="rs" id="r-dep">')+pcs.replace('<section class="rs">','<section class="rs" id="r-pcs">')+part.replace('<section class="rs">','<section class="rs" id="r-part">')+ctl.replace('<section class="rs">','<section class="rs" id="r-ctl">')+mod.replace('<section class="rs">','<section class="rs" id="r-mod">');
+  $('rules').innerHTML='';$('rules-page').innerHTML=html;
+  $('rules-page').querySelectorAll('.rtoc a').forEach(a=>a.onclick=e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})}
 // ---------- état du jeu ----------
 let ST,turn,sel,legal,over,pieceObjs=[],hist=[],selB=null,slots=[];
 let puzBig=false,puzzleMode=false,puzErr=0,puzHome=false,puzMsg='',saved=null;
