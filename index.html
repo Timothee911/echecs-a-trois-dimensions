@@ -281,6 +281,8 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}body.pzbig #hint{display:none}
 @media(max-width:640px){.rcoord{grid-template-columns:1fr}.rcards{grid-template-columns:1fr}.lg{gap:4px}.pc{padding:14px}.lgl small{font-size:9.5px}.rs h3{font-size:20px}}
 
 #mstrip{display:none}
+#offt{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translate(-50%,-12px);background:#1b2430;color:#fff;font:600 13px Inter,system-ui,sans-serif;padding:9px 16px;border-radius:99px;box-shadow:0 10px 30px #0004;z-index:40;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}
+#offt.on{opacity:1;transform:translate(-50%,0)}
 @media(max-width:640px){
  html,body{height:100dvh}
  body{-webkit-tap-highlight-color:transparent}
@@ -431,6 +433,10 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}body.pzbig #hint{display:none}
   <button class="hbtn txt back" id="net-back">Retour</button>
 </div></div>
 <script src="peerjs.min.js"></script>
+<script>
+// hors ligne : installe le service worker (fichiers gardés sur l'appareil)
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
 <script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -995,6 +1001,9 @@ applyMode();buildRules();init();booted=true;loadGame();buildHero();if(location.s
 
 // ---------- navigation, thème, accueil, classement ----------
 function setTheme(t){document.documentElement.dataset.theme=t;store.set('c3d-theme',t);if(typeof ST!=='undefined'&&ST){buildBoards();paint()}}
+function toast(t,ms=3200){let e=document.getElementById('offt');if(!e){e=document.createElement('div');e.id='offt';document.body.appendChild(e)}e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),ms)}
+addEventListener('offline',()=>toast('Hors ligne : tu peux continuer à jouer contre le bot.'));
+addEventListener('online',()=>toast('De nouveau en ligne.',2000));
 $('snd').onclick=()=>setSnd(!sndOn);$('snd').classList.toggle('mute',!sndOn);$('hint').onclick=hint;
 $('theme').onclick=()=>setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark');
 function rankRows(){const me=players.w,rows=[{n:me.name,e:me.elo,sub:me.g+' partie(s) jouée(s)',me:true},{n:'Bot · Fort',e:BOT[3].e,sub:'Niveau fixe'},{n:'Bot · Moyen',e:BOT[2].e,sub:'Niveau fixe'},{n:'Bot · Facile',e:BOT[1].e,sub:'Niveau fixe'}];rows.sort((a,b)=>b.e-a.e);return rows}
@@ -1087,7 +1096,7 @@ $('h-rules').onclick=()=>setView('rules');
 const NETCFG=(()=>{const q=new URLSearchParams(location.search).get('ph');if(!q)return {};const [h,p]=q.split(':');return {host:h,port:+p||9000,path:'/',secure:false}})();
 const netCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<6;i++)c+=A[Math.random()*A.length|0];return c};
 const nm=$('netm'),PID=c=>'e3d-'+c.toLowerCase();let netT=0;
-function netOpen(){nm.classList.add('on');$('net-a').hidden=false;$('net-b').hidden=true;$('net-err').textContent='';$('net-new').disabled=$('net-join').disabled=false}
+function netOpen(){if(!navigator.onLine){toast('Pas de connexion : le jeu en ligne a besoin d’Internet.');return}nm.classList.add('on');$('net-a').hidden=false;$('net-b').hidden=true;$('net-err').textContent='';$('net-new').disabled=$('net-join').disabled=false}
 function netFail(t){clearTimeout(netT);if(netPeer&&!net){try{netPeer.destroy()}catch(e){}netPeer=null}netOpen();$('net-err').textContent=t}
 function netSend(d){try{net&&net.conn.send(d)}catch(e){}}
 function netAbortAll(){clearTimeout(netT);if(net&&net.conn)try{net.conn.close()}catch(e){}if(netPeer)try{netPeer.destroy()}catch(e){}net=null;netPeer=null;netQ=[];nm.classList.remove('on')}
