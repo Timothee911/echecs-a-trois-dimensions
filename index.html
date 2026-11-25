@@ -281,6 +281,17 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}body.pzbig #hint{display:none}
 @media(max-width:640px){.rcoord{grid-template-columns:1fr}.rcards{grid-template-columns:1fr}.lg{gap:4px}.pc{padding:14px}.lgl small{font-size:9.5px}.rs h3{font-size:20px}}
 
 #mstrip{display:none}
+.rseg{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin:0 0 14px}
+.rseg button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px 6px;font:600 14px Inter,system-ui,sans-serif;color:var(--mut);cursor:pointer}
+.rseg button.on{background:var(--acc);color:var(--accfg)}
+.wme{display:flex;align-items:center;gap:12px;border-radius:18px;padding:14px 16px;margin-bottom:10px;background:linear-gradient(135deg,#1f7a8c,#134b57);color:#fff}
+.wav{width:44px;height:44px;border-radius:12px;background:#ffffff26;display:grid;place-items:center;font-size:26px;flex:none}
+.wnm{flex:1;min-width:0}.wnm label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;font-weight:700}
+.wnm input{width:100%;border:0;border-bottom:1px dashed #ffffff80;background:transparent;color:#fff;font:700 18px Inter,system-ui,sans-serif;padding:2px 0;outline:none}
+.wst{text-align:right}.wst b{display:block;font:800 26px ui-monospace,Menlo,monospace}.wst span{font-size:11.5px;opacity:.85}
+.wnote{font-size:13px;color:var(--mut);margin:0 0 12px;line-height:1.5}
+.wempty{text-align:center;color:var(--mut);padding:34px 10px;font-size:14px;border:1px dashed var(--line);border-radius:16px}
+.wspin{display:inline-block;width:14px;height:14px;border:2px solid var(--acc);border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px;margin-right:8px}
 #offt{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translate(-50%,-12px);background:#1b2430;color:#fff;font:600 13px Inter,system-ui,sans-serif;padding:9px 16px;border-radius:99px;box-shadow:0 10px 30px #0004;z-index:40;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}
 #offt.on{opacity:1;transform:translate(-50%,0)}
 @media(max-width:640px){
@@ -391,7 +402,7 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}body.pzbig #hint{display:none}
   </div>
 </div></section>
 <section id="rules-view" class="view"><div class="rk wide"><h2>Règles</h2><p>Tout pour bien jouer aux échecs en trois dimensions : le plateau, chaque pièce en détail, et le déroulement d’une partie.</p><div id="rules-page"></div></div></section>
-<section id="rank-view" class="view"><div class="rk"><h2>Classement</h2><p>Classement local : ton ELO face aux bots.</p><div id="rank-list"></div></div></section>
+<section id="rank-view" class="view"><div class="rk"><h2>Classement</h2><p id="rank-sub">Ton ELO face aux bots, et face aux autres joueurs.</p><div class="rseg" id="rseg"><button data-t="world">🌍 Mondial</button><button data-t="local">📱 Sur cet appareil</button></div><div id="rank-me"></div><div id="rank-list"></div></div></section>
 <div id="play-view" class="view">
 <main id="stage">
   <div class="pbar top" id="pc-b"><div class="av b">♚</div><div class="pinfo"><input class="pname" id="nm-b" maxlength="16" aria-label="Nom des Noirs"><div class="psub"><span class="cap" id="cap-b"></span><span class="delta" id="dl-b"></span></div></div><div class="elo"><b id="el-b">1200</b><span>ELO</span></div></div>
@@ -432,6 +443,7 @@ body.pzbig .acts{grid-template-columns:1fr 1fr}body.pzbig #hint{display:none}
   <div id="net-err"></div>
   <button class="hbtn txt back" id="net-back">Retour</button>
 </div></div>
+<script>window.SB_CONF={url:"",key:""};</script>
 <script src="peerjs.min.js"></script>
 <script>
 // hors ligne : installe le service worker (fichiers gardés sur l'appareil)
@@ -660,7 +672,7 @@ function renderPlayers(){for(const sd of['w','b']){
   const d=$('dl-'+sd),v=deltas[sd];
   if(v===null){d.className='delta';d.textContent=''}else{d.className='delta '+(v>0?'up':v<0?'dn':'eq');d.textContent=(v>0?'+':v<0?'−':'±')+Math.abs(v)}
   $('pc-'+sd).classList.toggle('act',turn==sd&&!over)}$('stage').classList.toggle('flip',!!net&&net.me=='b');renderCaps()}
-for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{if(net||(sd=='b'&&botOn()))return;players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players)});
+for(const sd of['w','b'])$('nm-'+sd).addEventListener('input',e=>{if(net||(sd=='b'&&botOn()))return;players[sd].name=e.target.value.slice(0,16)||('Joueur '+(sd=='w'?1:2));store.set('c3d-players',players);if(sd=='w')sbName(players.w.name)});
 function finish(res){ // res : 'w' | 'b' | 'd'
   if(eloDone)return;eloDone=true;if(net){renderPlayers();return}
   const K=32,rw=players.w.elo,rb=botOn()?BOT[botLvl].e:players.b.elo,ew=1/(1+Math.pow(10,(rb-rw)/400));
@@ -668,7 +680,8 @@ function finish(res){ // res : 'w' | 'b' | 'd'
   const dw=Math.round(K*(sw-ew)),db=-dw;
   players.w.elo+=dw;players.w.g++;
   if(botOn())deltas={w:dw,b:null};else{players.b.elo+=db;players.b.g++;deltas={w:dw,b:db}}
-  store.set('c3d-players',players);logGame(res,dw);renderPlayers()}
+  store.set('c3d-players',players);logGame(res,dw);renderPlayers();
+  if(botOn()&&!net&&!puzzleMode)sbReport(res=='w'?'w':res=='d'?'d':'l',botLvl,hist.length)}
 function resign(){if(over||thinking||puzzleMode)return;if(hist.length&&!confirm('Abandonner la partie ?'))return;if(!hist.length){ui('Joue au moins un coup avant d’abandonner');return}
   over=true;sel=null;legal=[];selB=null;slots=[];const lo=net?net.me:turn,wn=lo=='w'?'b':'w';if(net)netSend({t:'resign'});finish(wn);ui(pname(wn)+' gagne par abandon');paint();showEnd(wn,'Par abandon')}
 $('resign').onclick=resign;
@@ -997,7 +1010,7 @@ window.__dbg={get anims(){return anims.length},botPick,setLvl:v=>{botLvl=v},get 
 window.game={moves:()=>legal.map(t=>t.slice()),slots:()=>slots.slice(),legalAll:s=>legalAll(ST,s).length,count:()=>ST.m.size,play:(x,y,z)=>play(x,y,z),selBoard:id=>selBoard(id),pickSlot:i=>commit({k:'b',id:selB,x0:slots[i].x0,y0:slots[i].y0,z:slots[i].z}),cam:()=>({az,el,dist}),all:()=>legalAll(ST,turn).length,doMove:i=>commit(legalAll(ST,turn)[i]),turn:()=>turn,az:v=>{az=v;updCam()},el:v=>{el=v;updCam()},dist:v=>{dist=v;updCam()},tx:v=>{target.x=v;updCam()}};
 function buildHero(){const g=boardGroup.clone(true);g.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial)o.material=o.material.clone()});scene2.add(g);
   for(const [k,p] of newState().m){const [x,y,z]=kx(k);const o=makePiece(p.t,p.s);o.position.copy(wp(x,y,z));o.position.y+=.03;if(p.s=='b')o.rotation.y=Math.PI;scene2.add(o)}}
-applyMode();buildRules();init();booted=true;loadGame();buildHero();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
+applyMode();buildRules();init();booted=true;loadGame();setTimeout(sbFlush,1500);buildHero();if(location.search.includes('galerie'))pieceObjs.forEach(o=>o.visible=false);paint();
 
 // ---------- navigation, thème, accueil, classement ----------
 function setTheme(t){document.documentElement.dataset.theme=t;store.set('c3d-theme',t);if(typeof ST!=='undefined'&&ST){buildBoards();paint()}}
@@ -1006,8 +1019,61 @@ addEventListener('offline',()=>toast('Hors ligne : tu peux continuer à jouer co
 addEventListener('online',()=>toast('De nouveau en ligne.',2000));
 $('snd').onclick=()=>setSnd(!sndOn);$('snd').classList.toggle('mute',!sndOn);$('hint').onclick=hint;
 $('theme').onclick=()=>setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark');
+// ---------- classement mondial (Supabase) ----------
+let SB=window.SB_CONF||{url:'',key:''};{const q=new URLSearchParams(location.search).get('sb');if(q&&/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(q))SB={url:q,key:'test'}}
+const sbOn=()=>!!(SB.url&&SB.key);
+let sbSess=store.get('c3d-sb',null),sbMe=store.get('c3d-sbme',null),sbQ=store.get('c3d-sbq',[]),rankTab=store.get('c3d-rtab','world');
+async function sbFetch(path,opt={},auth=false){const h={apikey:SB.key,'Content-Type':'application/json',...(opt.headers||{})};
+  if(auth){const t=await sbToken();h.Authorization='Bearer '+t}else h.Authorization='Bearer '+SB.key;
+  const r=await fetch(SB.url.replace(/\/$/,'')+path,{...opt,headers:h});const tx=await r.text();let j=null;try{j=tx?JSON.parse(tx):null}catch(e){}
+  if(!r.ok){const e=new Error((j&&(j.message||j.msg||j.error_description))||('HTTP '+r.status));e.status=r.status;throw e}return {j,r}}
+async function sbToken(){const now=Date.now()/1000;
+  if(sbSess&&sbSess.exp>now+60)return sbSess.at;
+  if(sbSess&&sbSess.rt){try{const {j}=await sbFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:sbSess.rt})});return sbSave(j)}catch(e){}}
+  const {j}=await sbFetch('/auth/v1/signup',{method:'POST',body:JSON.stringify({data:{}})});return sbSave(j)}
+function sbSave(j){sbSess={at:j.access_token,rt:j.refresh_token,exp:Date.now()/1000+(j.expires_in||3600),uid:j.user&&j.user.id};store.set('c3d-sb',sbSess);return sbSess.at}
+async function sbRpc(fn,args){const {j}=await sbFetch('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)},true);return j}
+function sbSetMe(p){if(!p)return;sbMe=p;store.set('c3d-sbme',p)}
+async function sbEnsure(){if(!sbOn())return null;if(sbMe&&sbSess&&sbSess.uid==sbMe.id)return sbMe;
+  try{const p=await sbRpc('set_name',{n:players.w.name||'Joueur'});sbSetMe(p);return p}catch(e){return null}}
+// résultat d'une partie contre le bot : mis en file si hors ligne, envoyé dès que possible
+function sbReport(res,lvl,moves){if(!sbOn())return;sbQ.push({res,lvl,moves,at:Date.now()});store.set('c3d-sbq',sbQ);sbFlush()}
+let sbBusy=false;
+async function sbFlush(){if(!sbOn()||sbBusy||!sbQ.length||!navigator.onLine)return;sbBusy=true;
+  try{await sbEnsure();
+    while(sbQ.length){const g=sbQ[0];
+      try{const p=await sbRpc('report_game',{res:g.res,lvl:g.lvl,moves:g.moves});const old=sbMe?sbMe.elo:null;sbSetMe(p);
+        if(old!==null&&document.body.dataset.view=='play'){const d=p.elo-old;toast('Classement mondial : '+p.elo+' ('+(d>=0?'+':'−')+Math.abs(d)+')')}}
+      catch(e){if(String(e.message).includes('trop rapide')){sbBusy=false;setTimeout(sbFlush,16000);return}
+        if(e.status>=400&&e.status<500&&!/JWT|token/i.test(e.message)){/* donnée refusée : on l'oublie */}else throw e}
+      sbQ.shift();store.set('c3d-sbq',sbQ)}
+    if(document.body.dataset.view=='rank')buildRank()}catch(e){}
+  sbBusy=false}
+addEventListener('online',()=>setTimeout(sbFlush,800));
+let sbNameT=0;function sbName(n){if(!sbOn())return;clearTimeout(sbNameT);sbNameT=setTimeout(async()=>{try{sbSetMe(await sbRpc('set_name',{n}))}catch(e){}},900)}
+async function sbTop(){const {j}=await sbFetch('/rest/v1/players?select=id,name,elo,games,wins,best&games=gt.0&order=elo.desc,games.desc&limit=50');return j||[]}
+async function sbRankOf(elo){const {r}=await sbFetch('/rest/v1/players?select=id&games=gt.0&elo=gt.'+elo,{method:'HEAD',headers:{Prefer:'count=exact'}});const c=r.headers.get('content-range');return c?+(c.split('/')[1])+1:null}
+
+let worldSeq=0;
+async function buildWorld(){const seq=++worldSeq,L=$('rank-list'),M=$('rank-me');
+  const meCard=(rk)=>{const p=sbMe;M.innerHTML='<div class="wme"><div class="wav">♔</div><div class="wnm"><label>Ton pseudo</label><input id="wname" maxlength="16" value="'+esc(players.w.name)+'"></div><div class="wst"><b>'+(p&&p.games?p.elo:'—')+'</b><span>'+(p&&p.games?(rk?'Rang '+rk:'ELO mondial'):'Pas encore classé')+'</span></div></div>'+(sbQ.length?'<p class="wnote">⏳ '+sbQ.length+' partie(s) en attente d’envoi.</p>':'')+(!(p&&p.games)?'<p class="wnote">Joue une partie contre le bot pour entrer au classement mondial. Ton ELO mondial démarre à 1200 et est calculé par le serveur.</p>':'');
+    const i=$('wname');i.onchange=i.oninput=()=>{const v=i.value.slice(0,16).trim();if(!v)return;players.w.name=v;store.set('c3d-players',players);$('nm-w').value=v;sbName(v)}};
+  meCard(null);
+  if(!navigator.onLine){L.innerHTML='<div class="wempty">📡 Hors ligne : le classement mondial a besoin d’Internet.</div>';return}
+  L.innerHTML='<div class="wempty"><span class="wspin"></span>Chargement du classement…</div>';
+  try{const rows=await sbTop();if(seq!=worldSeq)return;const my=sbSess&&sbSess.uid;let rk=null;
+    rows.forEach((r,i)=>{if(r.id==my)rk=i+1});if(!rk&&sbMe&&sbMe.games){try{rk=await sbRankOf(sbMe.elo)}catch(e){}}
+    if(seq!=worldSeq)return;meCard(rk);
+    if(!rows.length){L.innerHTML='<div class="wempty">Personne n’est encore classé. Sois le premier !</div>';return}
+    const medal=['🥇','🥈','🥉'];
+    L.innerHTML=rows.map((r,i)=>'<div class="rrow'+(r.id==my?' me':'')+'"><span class="n">'+(medal[i]||i+1)+'</span><div class="nm">'+esc(r.name)+(r.id==my?' (toi)':'')+'<small>'+r.games+' partie'+(r.games>1?'s':'')+' · '+r.wins+' victoire'+(r.wins>1?'s':'')+' · record '+r.best+'</small></div><span class="e">'+r.elo+'</span></div>').join('')}
+  catch(e){if(seq!=worldSeq)return;L.innerHTML='<div class="wempty">Impossible de charger le classement pour l’instant.<br><button class="wbtn" id="wretry" style="margin-top:12px">Réessayer</button></div>';$('wretry').onclick=buildWorld}}
 function rankRows(){const me=players.w,rows=[{n:me.name,e:me.elo,sub:me.g+' partie(s) jouée(s)',me:true},{n:'Bot · Fort',e:BOT[3].e,sub:'Niveau fixe'},{n:'Bot · Moyen',e:BOT[2].e,sub:'Niveau fixe'},{n:'Bot · Facile',e:BOT[1].e,sub:'Niveau fixe'}];rows.sort((a,b)=>b.e-a.e);return rows}
-function buildRank(){const rows=rankRows();
+function buildRank(){
+  const sg=$('rseg');sg.style.display=sbOn()?'':'none';const tab=sbOn()?rankTab:'local';
+  sg.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.t==tab);b.onclick=()=>{rankTab=b.dataset.t;store.set('c3d-rtab',rankTab);buildRank()}});
+  if(tab=='world'){buildWorld();return}
+  $('rank-me').innerHTML='';const rows=rankRows();
   $('rank-list').innerHTML=rows.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><span class="n">'+(i+1)+'</span><div class="nm">'+r.n.replace(/</g,'&lt;')+(r.me?' (toi)':'')+'<small>'+r.sub+'</small></div><span class="e">'+r.e+'</span></div>').join('')}
 
 // ---------- puzzle du jour, classement, parties ----------
